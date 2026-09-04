@@ -1,0 +1,26 @@
+{
+  "step": "3.5",
+  "timestamp": "2026-09-02T16:07:00+05:30",
+  "original_redirect_behavior": "Used requests.get(allow_redirects=True) blindly following all redirects up to the requests library default (30) without any SSRF destination validation.",
+  "ssrf_vulnerability": "Confirmed. A malicious public URL could redirect the backend to fetch internal resources like http://127.0.0.1 or 169.254.169.254.",
+  "ssrf_mitigation": "Switched to a manual redirect loop (allow_redirects=False) checking every destination URL dynamically against private/loopback/link-local boundaries before issuing the GET.",
+  "ip_ranges_protected": "All private subnets (10.x, 172.16-31.x, 192.168.x), loopback (127.x, ::1), link-local (169.254.x), multicast, reserved, and unspecified IPs.",
+  "dns_validation_approach": "Employs standard library socket.getaddrinfo to resolve hostnames before every request, explicitly inspecting the underlying routing IPs via the ipaddress module.",
+  "redirect_validation_approach": "Every new Location header URL is joined and resolved before the subsequent loop iteration triggers the actual HTTP network fetch.",
+  "max_redirects_configuration": "self.max_redirects = 10",
+  "actual_maximum_redirects_followed": 10,
+  "timeout": "8 seconds preserved per request.",
+  "loop_handling": "Manual history check ensures a destination URL is not requested twice within the same chain, stopping loops immediately.",
+  "cross_domain_behavior": "Preserved correctly. Checks initial and final resolved public domains.",
+  "public_url_test_results": "All legitimate sites (google, python.org, example.com) successfully completed without tripping protections.",
+  "direct_ssrf_test_results": "Immediate safe block on 127.0.0.1, localhost, 10.0.0.1, 192.168.1.1, [::1]. Zero requests fired.",
+  "redirect_to_private_test_results": "Mock public -> 127.0.0.1 correctly halted at the redirect jump. Chain correctly records the block point without fetching 127.0.0.1.",
+  "redirect_limit_test_result": "Stopped exactly at 10 follows (11 initial+redirects). Total chain length bound properly.",
+  "api_integration_result": "Prediction service correctly parses the hardened redirect payloads. Final ML and RiskEngine functionality perfectly preserved.",
+  "pytest_result": "No new failures.",
+  "known_pre_existing_failures": [
+    "tests/test_predictor.py -> ModuleNotFoundError: No module named 'extractors.feature_extractor'"
+  ],
+  "new_failures": [],
+  "frozen_ml_verification": "unchanged"
+}

@@ -1,0 +1,29 @@
+{
+  "step": "3.3",
+  "timestamp": "2026-09-02T15:51:00+05:30",
+  "original_whois_behavior": "Synchronous block with no timeout, extracted domain string naively without port stripping.",
+  "timeout_strategy_selected": "Native library timeout parameter.",
+  "configured_timeout": "8 seconds",
+  "reason_for_strategy": "The installed whois package supports a native 'timeout' parameter, providing a genuine and safe bound directly inside the library.",
+  "files_inspected": [
+    "backend/services/whois_service.py",
+    "backend/tests/test_whois.py"
+  ],
+  "files_modified": [
+    "backend/services/whois_service.py"
+  ],
+  "backup_path": "backend/services/whois_service.py.bak",
+  "success_test_result": "Returned valid domain info payload.",
+  "unavailable_domain_result": "Safely returned dictionary with None values without crashing.",
+  "port_handling_result": "Successfully extracted base domain (example.com) from URL with port (:443).",
+  "mocked_timeout_result": "Caught exception and cleanly returned unavailable-data representation within configured time bound.",
+  "predict_integration_result": "Returned valid overall JSON payload for HTTP and HTTPS URLs.",
+  "full_pytest_result": "0 new failures. Only the pre-existing error in test_predictor.py remains.",
+  "known_pre_existing_failures": [
+    "tests/test_predictor.py -> ModuleNotFoundError: No module named 'extractors.feature_extractor'"
+  ],
+  "new_failures": [],
+  "frozen_model_status": "unchanged",
+  "feature_contract_status": "unchanged",
+  "no_retraining_confirmation": "Confirmed. Model logic and boundaries remain completely untouched."
+}

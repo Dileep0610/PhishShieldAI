@@ -1,0 +1,299 @@
+import joblib
+import pandas as pd
+import numpy as np
+
+from extractors.url_extractor import FeatureExtractor
+from extractors.html_extractor import HTMLExtractor
+
+
+class FeaturePipeline:
+
+    def __init__(self):
+
+        self.url_extractor = FeatureExtractor()
+
+        self.html_extractor = HTMLExtractor()
+
+        self.feature_names = joblib.load(
+            "models/feature_names.pkl"
+        )
+        
+        self.rt_mappings = joblib.load(
+            "models/verified_rt_lookup_mappings.pkl"
+        )
+
+        # =====================================================
+        # Validate model feature configuration
+        # =====================================================
+
+        if len(self.feature_names) != 47:
+
+            raise ValueError(
+                f"Expected 47 features, "
+                f"but loaded {len(self.feature_names)}"
+            )
+
+        print(
+            f"FeaturePipeline loaded "
+            f"{len(self.feature_names)} features"
+        )
+
+    def extract(self, url):
+
+        features = {}
+
+        # =====================================================
+        # URL FEATURES
+        # =====================================================
+
+        url_features = (
+            self.url_extractor.extract_url_features(url)
+        )
+
+        features.update(url_features)
+
+        # =====================================================
+        # HTML
+        # =====================================================
+
+        soup = self.html_extractor.fetch_html(url)
+
+        # =====================================================
+        # Missing Title
+        # =====================================================
+
+        features["MissingTitle"] = (
+            self.html_extractor.extract_title(soup)
+        )
+
+        # =====================================================
+        # Iframe / Frame
+        # =====================================================
+
+        features["IframeOrFrame"] = (
+            self.html_extractor.extract_iframe(soup)
+        )
+
+        # =====================================================
+        # Insecure Forms
+        # =====================================================
+
+        features["InsecureForms"] = (
+            self.html_extractor.extract_insecure_forms(soup)
+        )
+
+        # =====================================================
+        # External Hyperlinks
+        # =====================================================
+
+        features["PctExtHyperlinks"] = (
+            self.html_extractor.extract_external_hyperlinks(
+                soup,
+                url
+            )
+        )
+
+        # =====================================================
+        # External Resources
+        # =====================================================
+
+        features["PctExtResourceUrls"] = (
+            self.html_extractor.extract_external_resources(
+                soup,
+                url
+            )
+        )
+
+        # =====================================================
+        # Form Features
+        # =====================================================
+
+        form_features = (
+            self.html_extractor.extract_form_features(
+                soup,
+                url
+            )
+        )
+
+        features.update(form_features)
+
+        # =====================================================
+        # External Favicon
+        # =====================================================
+
+        features["ExtFavicon"] = (
+            self.html_extractor.extract_external_favicon(
+                soup,
+                url
+            )
+        )
+
+        # =====================================================
+        # Meta / Script / Link
+        # =====================================================
+
+        features["ExtMetaScriptLinkRT"] = (
+            self.html_extractor.extract_meta_script_link_rt(
+                soup,
+                url
+            )
+        )
+
+        # =====================================================
+        # Null / Self Redirect Links
+        # =====================================================
+
+        features["PctNullSelfRedirectHyperlinks"] = (
+            self.html_extractor.extract_null_redirect_links(
+                soup
+            )
+        )
+
+        # =====================================================
+        # Domain Mismatch
+        # =====================================================
+
+        features["FrequentDomainNameMismatch"] = (
+            self.html_extractor.extract_domain_mismatch(
+                soup,
+                url
+            )
+        )
+
+        return features
+
+    def build_vector(self, url):
+
+        features = self.extract(url)
+
+        # =====================================================
+        # Check for missing non-RT features and extra features
+        # =====================================================
+
+        rt_feature_names = set(self.rt_mappings.get("mappings", {}).keys()) | set(self.rt_mappings.get("unresolved_rt", []))
+        
+        expected_features = set(self.feature_names)
+        extracted_features = set(features.keys())
+        
+        missing_features = expected_features - extracted_features
+        extra_features = extracted_features - expected_features
+        
+        missing_non_rt = [f for f in missing_features if f not in rt_feature_names]
+        
+        if missing_non_rt:
+            raise ValueError(f"Missing required non-RT features: {missing_non_rt}")
+            
+        if extra_features:
+            raise ValueError(f"Unexpected extra features found: {extra_features}")
+
+        # =====================================================
+        # Apply RT Mappings
+        # =====================================================
+
+        for rt_feature, mapping in self.rt_mappings.get("mappings", {}).items():
+            if rt_feature not in expected_features:
+                continue
+                
+            if "rules" in mapping:
+                base_feature = rt_feature.replace("RT", "")
+                val = features.get(base_feature)
+                rt_val = np.nan
+                if val is not None:
+                    for rule in mapping["rules"]:
+                        if rule["min"] <= val <= rule["max"]:
+                            rt_val = rule["value"]
+                            break
+                features[rt_feature] = rt_val
+            elif "lookup" in mapping and "key_features" in mapping:
+                key_features = mapping["key_features"]
+                if all(k in features and features[k] is not None for k in key_features):
+                    tup = tuple(features[k] for k in key_features)
+                    features[rt_feature] = mapping["lookup"].get(tup, np.nan)
+                else:
+                    features[rt_feature] = np.nan
+                    
+        for unresolved in self.rt_mappings.get("unresolved_rt", []):
+            if unresolved in expected_features:
+                features[unresolved] = np.nan
+
+        # =====================================================
+        # Build vector in EXACT training order
+        # =====================================================
+
+        vector = []
+
+        for feature in self.feature_names:
+            value = features[feature]
+            vector.append(value)
+
+        # =====================================================
+        # Create DataFrame
+        # =====================================================
+
+        dataframe = pd.DataFrame(
+            [vector],
+            columns=self.feature_names
+        )
+
+        # =====================================================
+        # Validate feature count
+        # =====================================================
+
+        if dataframe.shape[1] != 47:
+
+            raise ValueError(
+                f"Expected 47 features, "
+                f"but generated {dataframe.shape[1]}"
+            )
+
+        # =====================================================
+        # Feature Vector Summary
+        # =====================================================
+
+        print("=" * 70)
+        print("FEATURE VECTOR")
+        print("=" * 70)
+
+        print(f"URL      : {url}")
+        print(f"Features : {dataframe.shape[1]}")
+
+        # =====================================================
+        # Print all 47 feature values
+        # =====================================================
+
+        print("-" * 70)
+        print(
+            f"{'No.':<5}"
+            f"{'Feature Name':<40}"
+            f"{'Value':<20}"
+        )
+        print("-" * 70)
+
+        for index, (feature, value) in enumerate(
+            zip(
+                self.feature_names,
+                vector
+            ),
+            start=1
+        ):
+
+            print(
+                f"{index:<5}"
+                f"{feature:<40}"
+                f"{str(value):<20}"
+            )
+
+        print("-" * 70)
+
+        # =====================================================
+        # Count missing features
+        # =====================================================
+
+        print(
+            f"Missing Features : "
+            f"{len(missing_features)}"
+        )
+
+        print("=" * 70)
+
+        return dataframe

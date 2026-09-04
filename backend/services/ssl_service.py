@@ -1,0 +1,83 @@
+import ssl
+import socket
+from urllib.parse import urlparse
+from datetime import datetime
+
+
+class SSLService:
+
+    def get_ssl_info(self, url):
+
+        try:
+
+            parsed = urlparse(url)
+
+            if parsed.scheme.lower() == "http":
+                return {
+                    "ssl_valid": False,
+                    "issuer": None,
+                    "common_name": None,
+                    "expiry_date": None,
+                    "days_until_expiry": None,
+                    "error": "HTTP URL does not use SSL/TLS"
+                }
+
+            netloc = parsed.netloc
+            if ":" in netloc:
+                hostname, port_str = netloc.split(":", 1)
+                port = int(port_str)
+            else:
+                hostname = netloc
+                port = 443
+
+            context = ssl.create_default_context()
+
+            with socket.create_connection((hostname, port), timeout=5) as sock:
+
+                with context.wrap_socket(
+                    sock,
+                    server_hostname=hostname
+                ) as ssock:
+
+                    cert = ssock.getpeercert()
+
+            issuer = dict(x[0] for x in cert["issuer"])
+
+            subject = dict(x[0] for x in cert["subject"])
+
+            expiry = datetime.strptime(
+                cert["notAfter"],
+                "%b %d %H:%M:%S %Y %Z"
+            )
+
+            days_left = (expiry - datetime.utcnow()).days
+
+            return {
+
+                "ssl_valid": True,
+
+                "issuer": issuer.get("organizationName"),
+
+                "common_name": subject.get("commonName"),
+
+                "expiry_date": str(expiry),
+
+                "days_until_expiry": days_left
+            }
+
+        except Exception as e:
+
+            return {
+
+                "ssl_valid": False,
+
+                "issuer": None,
+
+                "common_name": None,
+
+                "expiry_date": None,
+
+                "days_until_expiry": None,
+
+                "error": str(e)
+            }

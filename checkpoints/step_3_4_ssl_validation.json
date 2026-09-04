@@ -1,0 +1,30 @@
+{
+  "step": "3.4",
+  "timestamp": "2026-09-02T15:54:00+05:30",
+  "original_ssl_behavior": "Forced a TLS connection on port 443 unconditionally, regardless of the URL scheme or explicitly provided port.",
+  "modified_ssl_behavior": "Returns early with a safe unavailability message for HTTP URLs, and properly parses explicit ports if present.",
+  "scheme_handling": "Explicitly checks if urlparse().scheme is 'http' and returns 'ssl_valid': False without opening a socket.",
+  "port_handling": "Extracts port via netloc.split(':'). Falls back to 443 if no explicit port is defined.",
+  "timeout": "Preserved the existing 5-second socket timeout.",
+  "certificate_verification_behavior": "Preserved ssl.create_default_context() with strict server_hostname verification.",
+  "files_inspected": [
+    "backend/services/ssl_service.py",
+    "backend/tests/test_ssl.py"
+  ],
+  "files_modified": [
+    "backend/services/ssl_service.py"
+  ],
+  "backup_path": "backend/services/ssl_service.py.bak",
+  "https_test": "Successfully populated certificate info for https://example.com.",
+  "http_test": "Cleanly returned unavailable (error='HTTP URL does not use SSL/TLS') for http://example.com without attempting connection.",
+  "explicit_port_test": "Successfully connected and retrieved cert for https://example.com:443/path.",
+  "invalid_domain_test": "Safely caught socket error and returned ssl_valid=False with getaddrinfo failure message.",
+  "controlled_timeout_test": "Caught simulated socket timeout and returned ssl_valid=False without crashing.",
+  "certificate_validation_test": "Rejected expired.badssl.com securely, returning CERTIFICATE_VERIFY_FAILED.",
+  "predict_integration_result": "Prediction service correctly handles both HTTP and HTTPS targets with the new SSL payload, correctly mapping risk scores (0 for google, 27 for http example).",
+  "pytest_result": "No new failures.",
+  "known_pre_existing_failure": "tests/test_predictor.py -> ModuleNotFoundError: No module named 'extractors.feature_extractor'",
+  "new_failures": [],
+  "frozen_model_status": "unchanged",
+  "feature_contract_status": "unchanged"
+}

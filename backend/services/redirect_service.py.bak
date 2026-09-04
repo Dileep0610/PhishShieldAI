@@ -1,0 +1,291 @@
+import time
+from urllib.parse import urlparse
+
+import requests
+
+
+class RedirectService:
+
+    # =========================================================
+    # Known URL shortening services
+    # =========================================================
+
+    SHORTENER_DOMAINS = {
+
+        "bit.ly",
+        "tinyurl.com",
+        "t.co",
+        "goo.gl",
+        "ow.ly",
+        "is.gd",
+        "buff.ly",
+        "cutt.ly",
+        "rb.gy",
+        "shorturl.at",
+        "tiny.cc",
+        "lnkd.in",
+        "s.id",
+        "rebrand.ly",
+        "trib.al",
+        "soo.gd",
+        "v.gd",
+        "bl.ink",
+        "snip.ly"
+    }
+
+    # =========================================================
+    # Constructor
+    # =========================================================
+
+    def __init__(self):
+
+        self.timeout = 8
+
+        self.max_redirects = 10
+
+    # =========================================================
+    # Normalize domain
+    # =========================================================
+
+    def _normalize_domain(self, url):
+
+        try:
+
+            parsed = urlparse(url)
+
+            domain = (
+                parsed.netloc
+                .lower()
+                .split(":")[0]
+            )
+
+            if domain.startswith("www."):
+
+                domain = domain[4:]
+
+            return domain
+
+        except Exception:
+
+            return ""
+
+    # =========================================================
+    # Shortener detection
+    # =========================================================
+
+    def _is_shortener(self, url):
+
+        domain = self._normalize_domain(url)
+
+        if not domain:
+
+            return False
+
+        return (
+            domain in self.SHORTENER_DOMAINS
+        )
+
+    # =========================================================
+    # Analyze URL
+    # =========================================================
+
+    def analyze(self, url):
+
+        start_time = time.perf_counter()
+
+        result = {
+
+            "redirected": False,
+
+            "redirect_count": 0,
+
+            "final_url": url,
+
+            "redirect_chain": [url],
+
+            "protocol_changed": False,
+
+            "domain_changed": False,
+
+            "uses_shortener": self._is_shortener(url)
+        }
+
+        try:
+
+            # =================================================
+            # Send HEAD request first
+            # =================================================
+
+            response = requests.get(
+
+                url,
+
+                allow_redirects=True,
+
+                timeout=self.timeout,
+
+                stream=True,
+
+                headers={
+
+                    "User-Agent":
+                    "Mozilla/5.0 "
+                    "(Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) "
+                    "Chrome/131.0 Safari/537.36"
+                }
+            )
+
+            # =================================================
+            # Redirect history
+            # =================================================
+
+            history = response.history
+
+            final_url = response.url
+
+            # =================================================
+            # Build redirect chain
+            # =================================================
+
+            chain = [url]
+
+            for redirect_response in history:
+
+                location = redirect_response.headers.get(
+                    "Location"
+                )
+
+                if location:
+
+                    # Requests normally resolves relative
+                    # redirects for response.url.
+                    next_url = redirect_response.url
+
+                    chain.append(next_url)
+
+            # Make sure final URL is included
+            if chain[-1] != final_url:
+
+                chain.append(final_url)
+
+            # Remove duplicates while preserving order
+
+            cleaned_chain = []
+
+            for item in chain:
+
+                if item not in cleaned_chain:
+
+                    cleaned_chain.append(item)
+
+            # =================================================
+            # Redirect count
+            # =================================================
+
+            redirect_count = len(history)
+
+            result["redirected"] = (
+                redirect_count > 0
+            )
+
+            result["redirect_count"] = (
+                redirect_count
+            )
+
+            result["final_url"] = final_url
+
+            result["redirect_chain"] = (
+                cleaned_chain
+            )
+
+            # =================================================
+            # Compare original and final URL
+            # =================================================
+
+            original_parsed = urlparse(url)
+
+            final_parsed = urlparse(final_url)
+
+            # -------------------------------------------------
+            # Protocol changed
+            # -------------------------------------------------
+
+            result["protocol_changed"] = (
+                original_parsed.scheme.lower()
+                != final_parsed.scheme.lower()
+            )
+
+            # -------------------------------------------------
+            # Domain changed
+            # -------------------------------------------------
+
+            original_domain = (
+                self._normalize_domain(url)
+            )
+
+            final_domain = (
+                self._normalize_domain(final_url)
+            )
+
+            result["domain_changed"] = (
+                original_domain != final_domain
+            )
+
+            # =================================================
+            # Shortener detection
+            # =================================================
+            #
+            # IMPORTANT:
+            #
+            # A normal redirect such as:
+            #
+            # microsoft.com
+            #       ↓
+            # microsoft.com/en-in
+            #
+            # is NOT a shortener.
+            #
+            # We only mark a URL as shortened when the
+            # ORIGINAL URL belongs to a known shortening
+            # service.
+            # =================================================
+
+            result["uses_shortener"] = (
+                self._is_shortener(url)
+            )
+
+            # =================================================
+            # Close streamed response
+            # =================================================
+
+            response.close()
+
+        except requests.RequestException as e:
+
+            print(
+                f"Redirect analysis failed: {e}"
+            )
+
+        except Exception as e:
+
+            print(
+                f"Unexpected redirect error: {e}"
+            )
+
+        # =====================================================
+        # Processing time
+        # =====================================================
+
+        processing_time = round(
+            (time.perf_counter() - start_time)
+            * 1000,
+            2
+        )
+
+        result["processing_time_ms"] = (
+            processing_time
+        )
+
+        return result

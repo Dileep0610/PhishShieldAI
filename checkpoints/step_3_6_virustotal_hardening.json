@@ -1,0 +1,31 @@
+{
+  "step": "3.6",
+  "timestamp": "2026-09-02T16:11:00+05:30",
+  "original_vt_behavior": "Synchronous request.get / post with hardcoded 15s timeout per request. Could poll up to 10 times with 1-second sleeps, unbounded overall budget, and no explicit 429 rate limit backoff.",
+  "timeout": "15 seconds maximum per individual network request, rigidly enforced via requests' timeout parameter.",
+  "polling_limit": "Max 10 polls",
+  "polling_interval": "Up to 1.0 second, dynamically shortened if the global budget approaches expiration.",
+  "total_operation_budget": "30.0 seconds absolute max. Prevents VT polling from blocking the ThreadPoolExecutor indefinitely.",
+  "429_handling": "Implemented a retry loop in safe_request that intercepts 429s.",
+  "retry_after_handling": "Reads 'Retry-After' header. If present, it sleeps for that duration; if absent or malformed, falls back to a 2-second sleep. Aborts entirely if the sleep would exceed the 30-second budget.",
+  "404_submission_behavior": "Preserved. 404 is caught and the URL is safely POSTed to submit for analysis.",
+  "completed_analysis_behavior": "Extracts malicious, suspicious, harmless, undetected counters perfectly, matching the original output contract.",
+  "incomplete_analysis_behavior": "Safely escapes the loop after 10 polls or budget expiry, returning zero detections along with a documented error string.",
+  "safe_failure_semantics": "Any HTTP errors, timeout, missing fields, or budget breaches are caught. The result consistently returns zero detections with an 'error' flag. It does not fabricate a clean result, ensuring RiskEngine parses it as unavailable.",
+  "files_inspected": [
+    "backend/services/virustotal_service.py"
+  ],
+  "files_modified": [
+    "backend/services/virustotal_service.py"
+  ],
+  "backup_path": "backend/services/virustotal_service.py.bak",
+  "all_controlled_test_results": "All tests (A-H) passed perfectly using unittest.mock. Verified completed, queued, 429 backoff, 500 fallback, timeout, and malformed handling.",
+  "integration_result": "PredictionService perfectly consumed the hardened VirusTotal payload for both HTTP and HTTPS targets.",
+  "real_smoke_test_status": "Executed correctly using test_predict_manual.py. No crashes occurred. Data correctly retrieved and merged.",
+  "pytest_result": "No new failures.",
+  "known_pre_existing_failures": [
+    "tests/test_predictor.py -> ModuleNotFoundError: No module named 'extractors.feature_extractor'"
+  ],
+  "new_failures": [],
+  "frozen_ml_verification": "unchanged"
+}

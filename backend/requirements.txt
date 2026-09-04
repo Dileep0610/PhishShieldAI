@@ -1,0 +1,13 @@
+beautifulsoup4
+requests
+lxml
+pandas
+numpy
+scikit-learn
+joblib
+xgboost
+fastapi
+uvicorn
+python-whois
+tldextract
+validators

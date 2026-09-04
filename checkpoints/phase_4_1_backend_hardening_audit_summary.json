@@ -1,0 +1,32 @@
+{
+  "phase": "4.1",
+  "status": "COMPLETED",
+  "required_changes": [
+    "Fix fragile relative paths for models to use absolute paths anchored to the project root.",
+    "Fix error handling in predict.py to prevent internal exception details (str(e)) from leaking in 500 responses.",
+    "Fix Service Isolation in ThreadPoolExecutor: handle exceptions from future.result() so one external service failure does not crash the entire prediction.",
+    "Fix Concurrency: Reuse ThreadPoolExecutor or avoid creating a new one on every request.",
+    "Add request validation for the URL string to prevent empty, null, or malformed URLs (without changing type from str)."
+  ],
+  "recommended_changes": [
+    "Remove excessive print statements and use a minimal production-safe logging strategy.",
+    "Review CORS policy allow_origins=['*'].",
+    "Load .env securely and verify VT_API_KEY handling."
+  ],
+  "not_needed_changes": [
+    "Changing the URL field back to HttpUrl",
+    "Changing the ML prediction threshold",
+    "Redesigning the API response format"
+  ],
+  "known_failures": 1,
+  "new_failures": 0,
+  "frozen_artifact_hashes": {
+    "xgboost_frozen.pkl": "9B30E6FD823D7E490A08F69A61EFF4F36E49ADA5BBE434B126A84D685ACF8A80",
+    "feature_names.pkl": "E5090FDC7C5B6396CCDD48B3F21442FB4A88DBC6B5FED6C6E361AEE33955C514",
+    "verified_rt_lookup_mappings.pkl": "4DAE1E27D0423A37ED39EEA52998F56E6EF7C6F56F8DE05BEFA2FD9B67030BF9"
+  },
+  "production_files_modified": false,
+  "training_performed": false,
+  "packages_installed": false,
+  "final_gate": "PASS"
+}

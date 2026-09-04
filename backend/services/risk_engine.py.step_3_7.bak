@@ -1,0 +1,234 @@
+class RiskEngine:
+
+    def calculate(
+        self,
+        prediction,
+        confidence,
+        whois,
+        ssl,
+        redirect,
+        virustotal
+    ):
+
+        # -------------------------------------------------
+        # TRUE RISK SCORE
+        # 0   = Very Safe
+        # 100 = Very High Risk
+        # -------------------------------------------------
+
+        risk = 0.0
+
+        # -------------------------------------------------
+        # ML MODEL
+        # -------------------------------------------------
+        #
+        # prediction:
+        # 0 = Legitimate
+        # 1 = Phishing
+        #
+        # The model prediction gets the strongest weight.
+        # -------------------------------------------------
+
+        if prediction == 1:
+
+            if confidence >= 90:
+                risk += 55
+
+            elif confidence >= 80:
+                risk += 50
+
+            elif confidence >= 70:
+                risk += 45
+
+            elif confidence >= 60:
+                risk += 35
+
+            else:
+                risk += 25
+
+        else:
+
+            if confidence >= 95:
+                risk += 0
+
+            elif confidence >= 90:
+                risk += 3
+
+            elif confidence >= 80:
+                risk += 7
+
+            elif confidence >= 70:
+                risk += 12
+
+            else:
+                risk += 18
+
+        # -------------------------------------------------
+        # WHOIS / DOMAIN AGE
+        # -------------------------------------------------
+
+        age = whois.get("domain_age_days")
+
+        if age is not None:
+
+            if age < 30:
+                risk += 15
+
+            elif age < 90:
+                risk += 12
+
+            elif age < 365:
+                risk += 8
+
+            elif age < 365 * 2:
+                risk += 4
+
+            elif age < 365 * 5:
+                risk += 1
+
+            else:
+                risk += 0
+
+        else:
+
+            # Missing WHOIS information should be a
+            # moderate signal, not an automatic phishing signal.
+            risk += 5
+
+        # -------------------------------------------------
+        # SSL
+        # -------------------------------------------------
+
+        if ssl.get("ssl_valid") is True:
+
+            risk += 0
+
+        else:
+
+            risk += 15
+
+        # -------------------------------------------------
+        # REDIRECTS
+        # -------------------------------------------------
+
+        redirects = redirect.get("redirect_count", 0)
+
+        if redirects == 0:
+
+            risk += 0
+
+        elif redirects == 1:
+
+            risk += 1
+
+        elif redirects <= 3:
+
+            risk += 5
+
+        else:
+
+            risk += 12
+
+        # -------------------------------------------------
+        # DOMAIN CHANGE
+        # -------------------------------------------------
+
+        if redirect.get("domain_changed"):
+
+            risk += 8
+
+        # -------------------------------------------------
+        # PROTOCOL CHANGE
+        # -------------------------------------------------
+
+        if redirect.get("protocol_changed"):
+
+            risk += 10
+
+        # -------------------------------------------------
+        # URL SHORTENER
+        # -------------------------------------------------
+
+        if redirect.get("uses_shortener"):
+
+            risk += 8
+
+        # -------------------------------------------------
+        # VIRUSTOTAL
+        # -------------------------------------------------
+
+        malicious = int(
+            virustotal.get("malicious", 0) or 0
+        )
+
+        suspicious = int(
+            virustotal.get("suspicious", 0) or 0
+        )
+
+        harmless = int(
+            virustotal.get("harmless", 0) or 0
+        )
+
+        undetected = int(
+            virustotal.get("undetected", 0) or 0
+        )
+
+        total_engines = (
+            malicious
+            + suspicious
+            + harmless
+            + undetected
+        )
+
+        if total_engines > 0:
+
+            # -------------------------------------------------
+            # Malicious ratio
+            # -------------------------------------------------
+
+            malicious_ratio = malicious / total_engines
+
+            if malicious >= 10 or malicious_ratio >= 0.20:
+
+                risk += 30
+
+            elif malicious >= 5 or malicious_ratio >= 0.10:
+
+                risk += 25
+
+            elif malicious >= 3 or malicious_ratio >= 0.05:
+
+                risk += 18
+
+            elif malicious >= 2 or malicious_ratio >= 0.03:
+
+                risk += 12
+
+            elif malicious == 1:
+
+                # A single detection is treated cautiously.
+                risk += 5
+
+            # -------------------------------------------------
+            # Suspicious detections
+            # -------------------------------------------------
+
+            if suspicious >= 5:
+
+                risk += 12
+
+            elif suspicious >= 2:
+
+                risk += 8
+
+            elif suspicious == 1:
+
+                risk += 4
+
+        # -------------------------------------------------
+        # CAP SCORE
+        # -------------------------------------------------
+
+        risk = max(0, min(risk, 100))
+
+        return round(risk, 2)

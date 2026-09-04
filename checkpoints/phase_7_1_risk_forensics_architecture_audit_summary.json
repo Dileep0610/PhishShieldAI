@@ -1,0 +1,35 @@
+{
+  "phase": "7.1 Risk Intelligence & Forensic Layer Architecture Audit",
+  "status": "PASS",
+  "files_inspected": [
+    "backend/services/risk_engine.py",
+    "backend/services/prediction_service.py",
+    "backend/services/explainability_service.py",
+    "backend/schemas/response_models.py",
+    "backend/routes/predict.py",
+    "backend/services/virustotal_service.py",
+    "backend/services/ssl_service.py",
+    "backend/services/whois_service.py",
+    "backend/services/redirect_service.py"
+  ],
+  "current_architecture": "The prediction pipeline runs Feature Extraction and ML Inference sequentially, followed by 4 parallel Threat Intel calls (WHOIS, SSL, Redirect, VT). These results are fed into RiskEngine (which conflates ML prediction and heuristics into a 0-100 score) and ExplainabilityService (which maps features to text strings). predict.py computes the final risk_level.",
+  "reusable_components": "The concurrent Threat Intel fetching in prediction_service, the XGBoost pred_contribs mapping in explainability_service, and the 47-feature vector.",
+  "current_risk_engine_behavior": "risk_engine.py computes a score from 0 to 100. It applies heavy weight (up to 55 points) to the ML prediction, then adds flat heuristic penalties for domain age < 30, SSL errors, redirect counts/protocol changes, and VT malicious ratios. It limits redirect and VT risk to 30 points each.",
+  "current_threat_intelligence_fields": "VT (malicious, suspicious, harmless, undetected), SSL (ssl_valid, issuer, common_name, expiry_date, days_until_expiry, error), WHOIS (domain, registrar, creation_date, expiration_date, domain_age_days), Redirect (redirect_count, redirect_chain, protocol_changed, domain_changed, uses_shortener).",
+  "existing_evidence_sources": "Model contributions, URL lexical features, HTML DOM features, RT availability flags, and Threat Intel services.",
+  "missing_capabilities": "Structured forensic findings with IDs, Categories, Severities, and Remediation advice. Current evidence is presented as flat, unclassified strings.",
+  "proposed_forensic_architecture": "Introduce a new ForensicEngine that consumes the feature_vector and threat_intel to produce a list of ForensicFinding models. This engine sits alongside RiskEngine and ExplainabilityService, producing a deterministic SecurityAssessment object without altering the ML prediction.",
+  "proposed_severity_framework": "INFO (Contextual data like domain age > 1yr), LOW (Minor anomalies like missing titles), MEDIUM (Suspicious behavior like external form actions or HTTP), HIGH (Strong indicators like invalid SSL or URL shorteners), CRITICAL (Severe threats like VT Malicious > 0 or known phishing IPs).",
+  "ml_evidence_separation": "The ML Prediction is a statistical classification. Forensic Findings are deterministic security facts. They must coexist; a HIGH severity finding does not override a Legitimate prediction, but serves as analyst context.",
+  "unavailable_data_policy": "Missing data (NaN features, failed WHOIS) must yield 'Unavailable' status. They must not trigger synthetic findings, be coerced to zero, or be flagged as inherently suspicious.",
+  "performance_findings": "Threat Intel services (especially VT polling and WHOIS) are the primary bottleneck, taking up to 10-15s. RedirectService uses sequential requests. Explainability and Risk calculations are <10ms.",
+  "security_findings": "RedirectService performs live GET requests which poses SSRF risks (basic mitigations exist). Threat Intel calls could be abused for DOS if not rate-limited. Raw feature values must be sanitized before frontend rendering to prevent XSS.",
+  "frontend_integration_recommendation": "The 'Forensic Findings' section should be placed after 'Security Signals' and before 'WHY THIS RESULT?' (Model Explainability). This bridges the gap between raw signals and abstract ML mechanics.",
+  "proposed_testing_matrix": [
+    "Legitimate URL", "Phishing URL", "HTTP URL", "Invalid SSL", "Redirects", 
+    "WHOIS unavailable", "VirusTotal clean", "VirusTotal malicious", "Missing HTML evidence", 
+    "Missing RT evidence", "Conflicting ML vs forensic evidence", "No fabricated values", 
+    "Deterministic severity", "Failure isolation", "Performance", "Security/SSRF behavior"
+  ],
+  "recommended_phase_7_2": "Design Pydantic schemas for ForensicFinding. Implement ForensicEngine with deterministic rules mapped to the 47-feature vector and Threat Intel. Update predict.py to integrate the engine and return the new assessment layer."
+}

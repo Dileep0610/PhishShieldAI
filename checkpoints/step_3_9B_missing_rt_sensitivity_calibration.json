@@ -1,0 +1,10 @@
+{
+    "timestamp": "2026-09-02T16:42:23.027350",
+    "urls": [
+        "https://www.google.com",
+        "https://www.instagram.com/",
+        "https://dileepkumar-flax.vercel.app/"
+    ],
+    "results": "Investigation complete. ML predicts Phishing for Portfolio and Instagram due to trailing slash sensitivity (PathLevel=1) and Dataset distribution shift (FrequentDomainNameMismatch on Vercel). ML disagrees with VT.",
+    "confirmation": "Production files modified: NONE"
+}

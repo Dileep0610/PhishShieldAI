@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-09-02T15:47:00+05:30",
+  "step": "3.2",
+  "files_inspected": [
+    "backend/services/risk_engine.py",
+    "backend/tests/test_risk_engine.py",
+    "backend/routes/predict.py",
+    "backend/services/prediction_service.py"
+  ],
+  "file_modified": "backend/tests/test_risk_engine.py",
+  "original_calculate_signature": "calculate(self, prediction, confidence, whois, ssl, redirect, virustotal)",
+  "production_caller_signature": "self.risk_engine.calculate(prediction=prediction, confidence=confidence, whois=whois_info, ssl=ssl_info, redirect=redirect_info, virustotal=vt_info)",
+  "test_invocation_before_fix": "engine.calculate(prediction=0, confidence=85.62, whois={'domain_age_days':10541}, ssl={'ssl_valid':True}, redirect={'redirect_count':1, 'uses_shortener':False})",
+  "test_invocation_after_fix": "engine.calculate(prediction=0, confidence=85.62, whois={'domain_age_days':10541}, ssl={'ssl_valid':True}, redirect={'redirect_count':1, 'uses_shortener':False}, virustotal={'malicious': 0, 'suspicious': 0, 'harmless': 0, 'undetected': 0})",
+  "reason_for_fix": "The test script test_risk_engine.py was calling RiskEngine.calculate() without the recently added virustotal parameter, resulting in a TypeError. The production caller in prediction_service.py already passed all required arguments.",
+  "targeted_test_result": "Passed (Outputs 8.0)",
+  "full_test_result": "1 error during collection (test_predictor.py)",
+  "known_pre_existing_errors": [
+    "tests/test_predictor.py -> ModuleNotFoundError: No module named 'extractors.feature_extractor'"
+  ],
+  "new_errors": [],
+  "model_hash_status": "unchanged",
+  "feature_contract_status": "unchanged",
+  "production_modification_summary": "No production files were modified. Only test_risk_engine.py was updated to fix the missing parameter in its invocation."
+}

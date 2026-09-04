@@ -1,0 +1,15 @@
+from extractors.feature_extractor import FeatureExtractor
+from services.vector_builder import build_vector
+from services.predictor import predict  
+
+url = "https://google.com"
+
+extractor = FeatureExtractor()
+
+features = extractor.extract_url_features(url)
+
+vector = build_vector(features)
+
+result = predict(vector)
+
+print(result)

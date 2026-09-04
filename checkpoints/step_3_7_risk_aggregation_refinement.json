@@ -1,0 +1,38 @@
+{
+  "step": "3.7",
+  "timestamp": "2026-09-02T16:15:30+05:30",
+  "exact_risk_formulas_after_modification": {
+    "ML": "Prediction=1 adds 55, 50, 45, 35, 25 based on conf >=90, >=80, >=70, >=60, else. Prediction=0 adds 0, 3, 7, 12, 18 based on conf >=95, >=90, >=80, >=70, else.",
+    "WHOIS": "Age <30 (15), <90 (12), <365 (8), <2y (4), <5y (1), >=5y (0). Missing WHOIS (+5).",
+    "SSL": "ssl_valid=True (0). 'HTTP URL' in error (0). 'CERTIFICATE_VERIFY_FAILED' or 'expired' (15). Generic error (5).",
+    "Redirect": "Count=1 (1), Count 2-3 (5), Count >3 (12). Domain changed (8). Protocol changed (10). Shortener (8). CAPPED at 30.",
+    "VirusTotal": "Malicious >=10 or 20% (30). >=5 or 10% (25). >=3 or 5% (18). >=2 or 3% (12). ==1 (5). Suspicious >=5 (12), >=2 (8), ==1 (4). CAPPED at 30."
+  },
+  "source_caps": {
+    "ML": 55,
+    "WHOIS": 15,
+    "SSL": 15,
+    "Redirect": 30,
+    "VirusTotal": 30
+  },
+  "missing_data_semantics": {
+    "WHOIS": "Unavailable gets +5 offset.",
+    "SSL": "Unavailable network/socket gets +5 offset. Valid HTTP explicitly gets +0. Invalid cert explicitly gets +15.",
+    "Redirect": "Unavailable safely interpreted as zero counts/changes, adding +0.",
+    "VirusTotal": "Unavailable due to error string bypasses completely, adding +0 without fabricating genuine clean VT evidence."
+  },
+  "virustotal_semantics": "Explicit check for vt.get('error'). If error is present, we completely bypass parsing detections. Genuine zero counts calculate normally and safely evaluate to +0. This distinguishes unavailable from clean.",
+  "test_results": "Tested permutations (1-9). All passed perfectly.",
+  "bounded_score_verification": "Max evidence stress test (Test 6) correctly computed exactly 100 instead of blowing out to 160+. Score is firmly bounded [0, 100] globally via capping.",
+  "deterministic_verification": "Test 9 confirmed mathematically deterministic calculation mapping across redundant identical calls.",
+  "pytest_result": "No new failures.",
+  "frozen_ml_verification": "unchanged",
+  "files_modified": [
+    "backend/services/risk_engine.py"
+  ],
+  "backups_created": [
+    "backend/services/risk_engine.py.step_3_7.bak"
+  ],
+  "production_code_changed": true,
+  "PASS_FAIL": "PASS"
+}

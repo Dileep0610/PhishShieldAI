@@ -1,0 +1,164 @@
+from fastapi import APIRouter, HTTPException
+import time
+import urllib.parse
+from services.logger import logger
+
+from schemas.request_models import URLRequest
+from schemas.response_models import PredictionResponse
+
+from services.prediction_service import PredictionService
+
+
+router = APIRouter()
+
+service = PredictionService()
+
+
+@router.post(
+    "/predict",
+    response_model=PredictionResponse
+)
+def predict(request: URLRequest):
+
+    url_str = str(request.url)
+    if not url_str or not url_str.strip():
+        raise HTTPException(status_code=400, detail="Invalid URL")
+    
+    parsed = urllib.parse.urlparse(url_str)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise HTTPException(status_code=400, detail="Invalid URL scheme or format")
+
+    start_time = time.time()
+
+    try:
+
+        result = service.predict(url_str)
+
+        # -----------------------------
+        # Prediction
+        # -----------------------------
+
+        prediction = (
+            "Phishing"
+            if result["prediction"] == 1
+            else "Legitimate"
+        )
+
+        confidence = result["confidence"]
+
+        risk_score = result["risk_score"]
+
+        # -----------------------------
+        # Risk Level
+        # -----------------------------
+
+        if prediction == "Phishing":
+
+            if confidence >= 75:
+
+                risk = "Very High Risk"
+
+            elif confidence >= 60:
+
+                risk = "High Risk"
+
+            else:
+
+                risk = "Suspicious"
+
+        else:
+
+            if risk_score <= 15:
+
+                risk = "Very Safe"
+
+            elif risk_score <= 30:
+
+                risk = "Safe"
+
+            elif risk_score <= 50:
+
+                risk = "Suspicious"
+
+            elif risk_score <= 75:
+
+                risk = "High Risk"
+
+            else:
+
+                risk = "Very High Risk"
+
+        # -----------------------------
+        # Recommendation
+        # -----------------------------
+
+        if prediction == "Phishing":
+
+            recommendation = (
+                "Warning! This website appears to be a phishing site. "
+                "Do not enter passwords, banking details, or personal information."
+            )
+
+        else:
+
+            recommendation = (
+                "This website appears legitimate. "
+                "Always verify the URL before entering sensitive information."
+            )
+
+        # -----------------------------
+        # Processing Time
+        # -----------------------------
+
+        elapsed = round(
+            (time.time() - start_time) * 1000,
+            2
+        )
+
+        logger.info(
+            f"Prediction completed in {elapsed} ms"
+        )
+
+        # -----------------------------
+        # API Response
+        # -----------------------------
+
+        return PredictionResponse(
+
+            url=str(request.url),
+
+            prediction=prediction,
+
+            confidence=confidence,
+
+            risk_score=risk_score,
+
+            risk_level=risk,
+
+            processing_time_ms=elapsed,
+
+            recommendation=recommendation,
+
+            whois=result["whois"],
+
+            ssl=result["ssl"],
+
+            redirect=result["redirect"],
+
+            virustotal=result["virustotal"],
+
+            explainability=result.get("explainability"),
+            
+            forensic_report=result.get("forensic_report")
+        )
+
+    except Exception as e:
+        
+        logger.error(f"Prediction failed: {e}")
+
+        raise HTTPException(
+                                    
+            status_code=500,
+
+            detail="Prediction service temporarily unavailable."
+        )

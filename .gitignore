@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+*.pid
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+frontend/dist/
+dist/
+
+# Build / Cache
+.cache/
+.vite/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Datasets
+datasets/
+*.csv
+*.xlsx
+
+# Specific model exclusions (keep frozen and contract files)
+backend/models/url_phishing_model.pkl
+backend/models/feature_names_old.pkl
+
+# Testing temp files
+response.json
+test.py
+test_extract.py
+test_regression.py
+
+*.bak
+*.bak2
+temp_*.py
+validate_xgb.py
+*.step_*.bak

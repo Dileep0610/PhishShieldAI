@@ -1,0 +1,166 @@
+import os
+import time
+import base64
+import requests
+
+from dotenv import load_dotenv
+
+from services.logger import logger
+
+load_dotenv()
+
+
+class VirusTotalService:
+
+    def __init__(self):
+
+        self.api_key = os.getenv("VT_API_KEY")
+
+        self.base_url = "https://www.virustotal.com/api/v3/urls"
+
+        # Cache
+        self.cache = {}
+
+        # 1 Hour
+        self.cache_duration = 3600
+
+    # -----------------------------------------
+    # Convert URL -> VirusTotal URL ID
+    # -----------------------------------------
+    def _get_url_id(self, url):
+
+        encoded = base64.urlsafe_b64encode(
+            url.encode()
+        ).decode().strip("=")
+
+        return encoded
+
+    # -----------------------------------------
+    # Analyze URL
+    # -----------------------------------------
+    def analyze(self, url):
+
+        # -------------------------
+        # Cache
+        # -------------------------
+        if url in self.cache:
+
+            timestamp, result = self.cache[url]
+
+            if time.time() - timestamp < self.cache_duration:
+
+                logger.info(f"[VirusTotal] Cache Hit for URL")
+
+                return result
+
+        headers = {
+
+            "x-apikey": self.api_key
+        }
+
+        try:
+
+            if not self.api_key:
+                logger.warning("VirusTotal API key is not configured. Service unavailable.")
+                return {
+                    "malicious": 0,
+                    "suspicious": 0,
+                    "harmless": 0,
+                    "undetected": 0,
+                    "error": "VirusTotal API key is not configured."
+                }
+
+            budget = 30.0
+            start_time = time.time()
+
+            def check_budget():
+                elapsed = time.time() - start_time
+                if elapsed >= budget:
+                    raise TimeoutError("VirusTotal operation budget exceeded.")
+                return min(15.0, budget - elapsed)
+
+            def safe_request(method, req_url, **kwargs):
+                while True:
+                    rem_timeout = check_budget()
+                    kwargs['timeout'] = rem_timeout
+                    resp = requests.request(method, req_url, **kwargs)
+                    
+                    if resp.status_code == 429:
+                        retry_after = resp.headers.get("Retry-After")
+                        if retry_after and retry_after.isdigit():
+                            delay = int(retry_after)
+                        else:
+                            delay = 2
+                        
+                        elapsed = time.time() - start_time
+                        if elapsed + delay >= budget:
+                            raise TimeoutError("VirusTotal rate limit Retry-After exceeds budget.")
+                        time.sleep(delay)
+                        continue
+                        
+                    resp.raise_for_status()
+                    return resp
+
+            url_id = self._get_url_id(url)
+            report_url = f"{self.base_url}/{url_id}"
+
+            try:
+                response = safe_request("GET", report_url, headers=headers)
+                
+                data = response.json()["data"]["attributes"]
+                stats = data["last_analysis_stats"]
+                result = {
+                    "malicious": stats.get("malicious", 0),
+                    "suspicious": stats.get("suspicious", 0),
+                    "harmless": stats.get("harmless", 0),
+                    "undetected": stats.get("undetected", 0)
+                }
+                self.cache[url] = (time.time(), result)
+                return result
+
+            except requests.HTTPError as e:
+                if e.response.status_code == 404:
+                    pass
+                else:
+                    raise
+
+            # URL not found -> submit
+            submit = safe_request("POST", self.base_url, headers=headers, data={"url": url})
+            analysis_id = submit.json()["data"]["id"]
+            analysis_url = f"https://www.virustotal.com/api/v3/analyses/{analysis_id}"
+
+            for _ in range(10):
+                report = safe_request("GET", analysis_url, headers=headers)
+                report_json = report.json()
+                status = report_json["data"]["attributes"]["status"]
+
+                if status == "completed":
+                    stats = report_json["data"]["attributes"]["stats"]
+                    result = {
+                        "malicious": stats.get("malicious", 0),
+                        "suspicious": stats.get("suspicious", 0),
+                        "harmless": stats.get("harmless", 0),
+                        "undetected": stats.get("undetected", 0)
+                    }
+                    self.cache[url] = (time.time(), result)
+                    return result
+
+                rem = check_budget()
+                time.sleep(min(1.0, rem))
+
+            return {
+                "malicious": 0,
+                "suspicious": 0,
+                "harmless": 0,
+                "undetected": 0,
+                "error": "VirusTotal analysis incomplete after maximum polling."
+            }
+
+        except Exception as e:
+            return {
+                "malicious": 0,
+                "suspicious": 0,
+                "harmless": 0,
+                "undetected": 0,
+                "error": str(e)
+            }

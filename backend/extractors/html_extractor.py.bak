@@ -1,0 +1,375 @@
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+
+
+class HTMLExtractor:
+
+    def __init__(self, timeout=5):
+        self.timeout = timeout
+
+    # ---------------------------------------
+    # Download HTML
+    # ---------------------------------------
+    def fetch_html(self, url):
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }
+
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=self.timeout
+            )
+
+            response.raise_for_status()
+
+            return BeautifulSoup(response.text, "lxml")
+
+        except Exception as e:
+            print("HTML Download Error:", e)
+            return None
+
+    # ---------------------------------------
+    # Missing Title
+    # ---------------------------------------
+    def extract_title(self, soup):
+
+        if soup is None:
+            return 1
+
+        if soup.title is None:
+            return 1
+
+        title = soup.title.text.strip()
+
+        if title == "":
+            return 1
+
+        return 0
+
+    # ---------------------------------------
+    # Iframe Detection
+    # ---------------------------------------
+    def extract_iframe(self, soup):
+
+        if soup is None:
+            return 0
+
+        iframe = soup.find_all("iframe")
+        frame = soup.find_all("frame")
+
+        return 1 if len(iframe) + len(frame) > 0 else 0
+
+    # ---------------------------------------
+    # Insecure Forms
+    # ---------------------------------------
+    def extract_insecure_forms(self, soup):
+
+        if soup is None:
+            return 0
+
+        forms = soup.find_all("form")
+
+        for form in forms:
+
+            action = form.get("action", "")
+
+            if action.startswith("http://"):
+                return 1
+
+        return 0
+
+    # ---------------------------------------
+    # External Hyperlinks Percentage
+    # ---------------------------------------
+    def extract_external_hyperlinks(self, soup, url):
+
+        if soup is None:
+            return 0
+
+        links = soup.find_all("a", href=True)
+
+        if len(links) == 0:
+            return 0
+
+        domain = urlparse(url).netloc
+
+        external = 0
+
+        for link in links:
+
+            href = link["href"]
+
+            if href.startswith("http"):
+
+                if domain not in href:
+                    external += 1
+
+        return round(external / len(links), 4)
+
+    # ---------------------------------------
+    # External Resource URLs
+    # ---------------------------------------
+    def extract_external_resources(self, soup, url):
+
+        if soup is None:
+            return 0
+
+        resources = []
+
+        resources.extend(soup.find_all("img", src=True))
+        resources.extend(soup.find_all("script", src=True))
+        resources.extend(soup.find_all("link", href=True))
+
+        if len(resources) == 0:
+            return 0
+
+        domain = urlparse(url).netloc
+
+        external = 0
+
+        for tag in resources:
+
+            src = tag.get("src") or tag.get("href")
+
+            if src and src.startswith("http"):
+
+                if domain not in src:
+                    external += 1
+
+        return round(external / len(resources), 4)
+
+    # ---------------------------------------
+    # Form Features
+    # ---------------------------------------
+    def extract_form_features(self, soup, url):
+
+        features = {
+            "RelativeFormAction": 0,
+            "ExtFormAction": 0,
+            "AbnormalFormAction": 0,
+            "SubmitInfoToEmail": 0,
+            "ImagesOnlyInForm": 0,
+            "FakeLinkInStatusBar": 0,
+            "PopUpWindow": 0,
+            "RightClickDisabled": 0
+        }
+
+        if soup is None:
+            return features
+
+        features["FakeLinkInStatusBar"] = self.extract_fake_link_in_status_bar(soup)
+        features["PopUpWindow"] = self.extract_pop_up_window(soup)
+        features["RightClickDisabled"] = self.extract_right_click_disabled(soup)
+
+        forms = soup.find_all("form")
+
+        if len(forms) == 0:
+            return features
+
+        domain = urlparse(url).netloc
+
+        for form in forms:
+
+            action = form.get("action", "").strip().lower()
+
+            # Relative Form Action
+            if action.startswith("/") or action == "":
+                features["RelativeFormAction"] = 1
+
+            # External Form Action
+            elif action.startswith("http"):
+                if domain not in action:
+                    features["ExtFormAction"] = 1
+
+            # Abnormal Form Action
+            if action in ["", "#", "javascript:void(0)"]:
+                features["AbnormalFormAction"] = 1
+
+            # Submit To Email
+            if action.startswith("mailto:"):
+                features["SubmitInfoToEmail"] = 1
+
+            # Images Only In Form
+            text = form.get_text(strip=True)
+            images = form.find_all("img")
+
+            if len(images) > 0 and text == "":
+                features["ImagesOnlyInForm"] = 1
+
+        return features
+
+    # ---------------------------------------
+    # Fake Link In Status Bar
+    # ---------------------------------------
+    def extract_fake_link_in_status_bar(self, soup):
+        if soup is None:
+            return 0
+        for a in soup.find_all('a'):
+            onmouseover = a.get('onmouseover', '')
+            if onmouseover and 'window.status' in onmouseover.lower():
+                return 1
+        return 0
+
+    # ---------------------------------------
+    # Pop Up Window
+    # ---------------------------------------
+    def extract_pop_up_window(self, soup):
+        if soup is None:
+            return 0
+        for script in soup.find_all('script'):
+            if script.string and 'window.open(' in script.string.lower():
+                return 1
+        for tag in soup.find_all(True):
+            onclick = tag.get('onclick', '')
+            if isinstance(onclick, str) and 'window.open(' in onclick.lower():
+                return 1
+            # Sometimes attributes are lists, but get('onclick', '') should return str if it's a string attribute
+        return 0
+
+    # ---------------------------------------
+    # Right Click Disabled
+    # ---------------------------------------
+    def extract_right_click_disabled(self, soup):
+        if soup is None:
+            return 0
+        for tag in soup.find_all(True):
+            oncontextmenu = tag.get('oncontextmenu', '')
+            if isinstance(oncontextmenu, str) and 'return false' in oncontextmenu.lower():
+                return 1
+        for script in soup.find_all('script'):
+            if script.string:
+                content = script.string.lower().replace(' ', '')
+                if 'event.button==2' in content:
+                    return 1
+        return 0
+        # ---------------------------------------
+    # External Favicon
+    # ---------------------------------------
+    def extract_external_favicon(self, soup, url):
+
+        if soup is None:
+            return 0
+
+        domain = urlparse(url).netloc
+
+        icons = soup.find_all("link", rel=True)
+
+        for icon in icons:
+
+            rel = " ".join(icon.get("rel")).lower()
+
+            if "icon" in rel:
+
+                href = icon.get("href", "")
+
+                if href.startswith("http"):
+
+                    if domain not in href:
+                        return 1
+
+        return 0
+
+        # ---------------------------------------
+    # External Meta Script Link Ratio
+    # ---------------------------------------
+    def extract_meta_script_link_rt(self, soup, url):
+
+        if soup is None:
+            return 0
+
+        domain = urlparse(url).netloc
+
+        total = 0
+        external = 0
+
+        tags = []
+
+        tags.extend(soup.find_all("script", src=True))
+        tags.extend(soup.find_all("link", href=True))
+        tags.extend(soup.find_all("meta"))
+
+        for tag in tags:
+
+            src = tag.get("src") or tag.get("href")
+
+            if src:
+
+                total += 1
+
+                if src.startswith("http"):
+
+                    if domain not in src:
+                        external += 1
+
+        if total == 0:
+            return 0
+
+        return round(external / total, 4)
+
+
+        # ---------------------------------------
+    # Null Self Redirect Hyperlinks
+    # ---------------------------------------
+    def extract_null_redirect_links(self, soup):
+
+        if soup is None:
+            return 0
+
+        links = soup.find_all("a", href=True)
+
+        if len(links) == 0:
+            return 0
+
+        suspicious = 0
+
+        for link in links:
+
+            href = link["href"].strip().lower()
+
+            if href in ["", "#", "#content"]:
+
+                suspicious += 1
+
+            elif href.startswith("javascript"):
+
+                suspicious += 1
+
+        return round(suspicious / len(links), 4)
+
+
+        # ---------------------------------------
+    # Domain Name Mismatch
+    # ---------------------------------------
+    def extract_domain_mismatch(self, soup, url):
+
+        if soup is None:
+            return 0
+
+        domain = urlparse(url).netloc
+
+        links = soup.find_all("a", href=True)
+
+        mismatch = 0
+
+        total = 0
+
+        for link in links:
+
+            href = link["href"]
+
+            if href.startswith("http"):
+
+                total += 1
+
+                if domain not in href:
+
+                    mismatch += 1
+
+        if total == 0:
+            return 0
+
+        return round(mismatch / total, 4)
