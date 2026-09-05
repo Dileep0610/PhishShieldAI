@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishShield AI</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <header class="header">
+        <h1>PhishShield AI</h1>
+    </header>
+
+    <main class="container">
+        
+        <!-- IDLE STATE -->
+        <div id="state-idle" class="state-panel">
+            <button id="scan-button" class="btn-primary">Scan Current Page</button>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div id="state-loading" class="state-panel hidden">
+            <div class="spinner"></div>
+            <p>Analyzing website...</p>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div id="state-error" class="state-panel hidden">
+            <p id="error-message" class="error-text">An error occurred.</p>
+            <button id="scan-again-error-button" class="btn-secondary mt-16">Scan Again</button>
+        </div>
+
+        <!-- SUCCESS STATE -->
+        <div id="state-success" class="state-panel hidden">
+            
+            <div class="url-area">
+                <span class="label">Scanned URL</span>
+                <div id="current-url" class="url-display"></div>
+            </div>
+
+            <div id="result-badge" class="badge"></div>
+            
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <span class="label">Risk Score</span>
+                    <span id="risk-score" class="metric-value">--</span>
+                </div>
+                <div class="metric-box">
+                    <span class="label">Confidence</span>
+                    <span id="confidence-score" class="metric-value">--</span>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <span class="label">Security Signals</span>
+                <div class="signals-grid">
+                    <div class="signal-item">
+                        <span class="signal-label">SSL</span>
+                        <span id="signal-ssl" class="signal-val">--</span>
+                    </div>
+                    <div class="signal-item">
+                        <span class="signal-label">Redirects</span>
+                        <span id="signal-redirects" class="signal-val">--</span>
+                    </div>
+                    <div class="signal-item">
+                        <span class="signal-label">VirusTotal</span>
+                        <span id="signal-vt" class="signal-val">--</span>
+                    </div>
+                    <div class="signal-item">
+                        <span class="signal-label">Domain Age</span>
+                        <span id="signal-domain" class="signal-val">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <span class="label">Forensic Findings</span>
+                <ul id="findings-list" class="findings-list">
+                    <!-- Findings will be injected here -->
+                </ul>
+            </div>
+
+            <div class="section-container">
+                <span class="label">Recommendation</span>
+                <div id="recommendation-area" class="recommendation-area">
+                    <!-- Recommendation injected here -->
+                </div>
+            </div>
+
+            <button id="scan-again-success-button" class="btn-primary mt-16">Scan Again</button>
+        </div>
+    </main>
+
+    <script src="popup.js"></script>
+</body>
+</html>

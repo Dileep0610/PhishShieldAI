@@ -1,0 +1,32 @@
+{
+  "phase": "8.4",
+  "name": "Predict API Integration",
+  "status": "COMPLETED",
+  "backend_endpoint": "/predict",
+  "request_contract": {
+    "method": "POST",
+    "body": { "url": "string" }
+  },
+  "response_contract": "PredictionResponse (risk_score, prediction, confidence, etc)",
+  "api_base_url": "http://127.0.0.1:8000",
+  "timeout_ms": 15000,
+  "http_error_handling": "Handled: 400, 422, >=500, network errors, timeouts.",
+  "response_validation": "Parses JSON and checks for prediction/risk_score/confidence",
+  "duplicate_request_protection": true,
+  "cors_status": "BLOCKED (Requires backend ALLOWED_ORIGINS update to support chrome-extension:// origins)",
+  "extension_id": "dynamic-unpacked-id",
+  "tested_urls": ["https://www.google.com", "https://github.com", "https://dileepkumar-flax.vercel.app", "https://raktha-sethu.web.app/"],
+  "network_request_count": 1,
+  "security_validation": {
+    "eval_used": false,
+    "inline_js": false,
+    "secrets_exposed": false
+  },
+  "backend_modified": false,
+  "model_modified": false,
+  "frontend_modified": false,
+  "git_status": "Clean",
+  "unresolved_issues": [
+    "CORS is currently blocked because backend ALLOWED_ORIGINS only permits localhost web ports, not extension origins."
+  ]
+}

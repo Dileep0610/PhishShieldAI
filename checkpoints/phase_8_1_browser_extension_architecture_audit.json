@@ -1,0 +1,30 @@
+{
+  "phase": "8.1",
+  "name": "Browser Extension Architecture Audit",
+  "status": "COMPLETED",
+  "architecture_recommendation": {
+    "current_backend": "FastAPI",
+    "endpoint_reusable": true,
+    "manifest_version": 3,
+    "permissions": ["activeTab"],
+    "content_script_required": false,
+    "service_worker_required": false,
+    "secrets_exposed": false,
+    "url_capture": "chrome.tabs.query({active: true, currentWindow: true}) inside popup.js",
+    "cors_change_required": true
+  },
+  "predict_contract": {
+    "request": "URLRequest(url: str)",
+    "response_schema": "PredictionResponse with risk_level, confidence, risk_score, recommendation, whois, ssl, redirect, virustotal, explainability, forensic_report"
+  },
+  "security": {
+    "csp": "default-src 'self'; connect-src 'self' http://localhost:8000 https://<prod-backend-url>; script-src 'self'",
+    "eval_allowed": false
+  },
+  "duplicate_scan_strategy": "Disable scan button while request is running, use simple client-side throttling.",
+  "timeout_strategy": "Implement client-side timeout of ~10s. If backend fails, show user-friendly error.",
+  "error_handling_strategy": "Catch all network/HTTP errors. Do not expose tracebacks. Display friendly message.",
+  "no_implementation_occurred": true,
+  "no_model_modified": true,
+  "no_retraining_occurred": true
+}

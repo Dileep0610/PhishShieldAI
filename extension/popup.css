@@ -1,0 +1,301 @@
+:root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --card-inner: #0b1120;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary-bg: #334155;
+    --secondary-hover: #475569;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+    --border-color: #334155;
+    
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 360px;
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.header {
+    background-color: var(--card-bg);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.05em;
+}
+
+.container {
+    padding: 16px;
+}
+
+.url-area {
+    margin-bottom: 16px;
+    background-color: var(--card-inner);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.url-display {
+    font-family: monospace;
+    font-size: 12px;
+    word-break: break-all;
+    color: var(--text-primary);
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-primary, .btn-secondary {
+    width: 100%;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-primary:disabled {
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary-hover);
+}
+
+.mt-16 {
+    margin-top: 16px;
+}
+
+.state-panel {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    margin: 0 auto 12px auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#state-loading {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 32px 16px;
+}
+
+.error-text {
+    color: var(--danger-color);
+    text-align: center;
+    font-weight: 500;
+}
+
+.badge {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.badge.safe {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: var(--success-color);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge.phishing {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: var(--danger-color);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.metric-box {
+    background-color: var(--card-inner);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+}
+
+.metric-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 4px;
+}
+
+.section-container {
+    margin-bottom: 16px;
+}
+
+.signals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background-color: var(--card-inner);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.signal-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.signal-label {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.signal-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.findings-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    background-color: var(--card-inner);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.finding-item {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.finding-item:last-child {
+    border-bottom: none;
+}
+
+.finding-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 4px;
+}
+
+.finding-severity {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.sev-INFO { background-color: rgba(59, 130, 246, 0.2); color: var(--info-color); }
+.sev-LOW { background-color: rgba(16, 185, 129, 0.2); color: var(--success-color); }
+.sev-MEDIUM { background-color: rgba(245, 158, 11, 0.2); color: var(--warning-color); }
+.sev-HIGH { background-color: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
+.sev-CRITICAL { background-color: rgba(220, 38, 38, 0.3); color: #f87171; border: 1px solid var(--danger-color); }
+
+.finding-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.finding-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.recommendation-area {
+    padding: 12px;
+    background-color: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 0 4px 4px 0;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.no-findings {
+    padding: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}

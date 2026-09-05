@@ -1,0 +1,36 @@
+{
+  "phase": "github_initial_push",
+  "repository": "https://github.com/Dileep0610/PhishShieldAI.git",
+  "branch": "main",
+  "commit_hash": "f374f3f81865faa56dbcae6b61b986bf27d58ee2",
+  "commit_message": "Initial commit: PhishShield AI phishing detection platform",
+  "push_result": "SUCCESS",
+  "files_committed": 186,
+  "ignored_categories": [
+    "__pycache__",
+    "venv",
+    ".env secrets",
+    "datasets (csv)",
+    "node_modules",
+    "temp_*.py debug scripts",
+    "*.bak backup files"
+  ],
+  "model_artifacts": {
+    "included": [
+      "xgboost_frozen.pkl",
+      "feature_names.pkl",
+      "verified_rt_lookup_mappings.pkl"
+    ],
+    "excluded": [
+      "url_phishing_model.pkl",
+      "feature_names_old.pkl"
+    ]
+  },
+  "dataset_committed": false,
+  "secrets_committed": false,
+  "working_tree_clean": true,
+  "remote_status": "synced",
+  "application_changed": false,
+  "model_retrained": false,
+  "frozen_model_modified": false
+}

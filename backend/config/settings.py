@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-allowed_origins_str = os.getenv("PHISHSHIELD_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173")
+allowed_origins_str = os.getenv("PHISHSHIELD_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173,https://dileepkumar-flax.vercel.app,chrome-extension://ifcodnjefmmbgmliodfpbpiomjbbmgij")
 ALLOWED_ORIGINS = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
 
 APP_NAME = "PhishShield AI"
