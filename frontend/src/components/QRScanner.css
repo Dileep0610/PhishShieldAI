@@ -1,0 +1,109 @@
+/* Tabs */
+.scanner-tabs {
+  display: flex;
+  margin-bottom: 25px;
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 15px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover:not(:disabled) {
+  color: var(--text-main);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+  color: var(--text-main);
+  background-color: var(--accent);
+}
+
+.tab-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* QR Scanner */
+.qr-scanner {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+}
+
+.scanner-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 600px) {
+  .scanner-controls {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.or-divider {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.file-upload-btn {
+  display: inline-block;
+  background-color: var(--bg-dark);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 15px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.file-upload-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.qr-reader-active {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 20px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+}
+
+.qr-reader-hidden {
+  display: none;
+}
+
+.qr-error {
+  margin-top: 15px;
+}
+
+.decoded-result {
+  text-align: left;
+  background-color: var(--bg-dark);
+  padding: 25px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}

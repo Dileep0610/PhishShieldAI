@@ -1,0 +1,8 @@
+{
+  "audit_phase": "9.1",
+  "status": "PASS",
+  "qr_decoding_location": "frontend",
+  "reused_endpoint": "/predict",
+  "model_modified": false,
+  "files_modified": []
+}

@@ -15,6 +15,8 @@ Phishing attacks are becoming increasingly sophisticated. Traditional blocklists
 
 ## 4. Key Features
 - **URL Scanning Dashboard:** Input and scan any URL.
+- **QR Scanner:** Scan QR codes via camera or image upload, safely validated strictly as text payloads before scanning.
+- **Browser Extension:** Scan current pages independently directly from the browser (Manifest V3).
 - **Explainable AI (XAI):** Native XGBoost contribution mapping to explain prediction factors.
 - **Threat Intelligence Integration:** Live VirusTotal, SSL, WHOIS, and redirect chain analysis.
 - **Deterministic Forensic Engine:** Evaluates security signals independently of the ML model.
@@ -24,6 +26,7 @@ Phishing attacks are becoming increasingly sophisticated. Traditional blocklists
 - **Frontend:** React (Vite)
 - **Backend:** Python (FastAPI)
 - **Model:** XGBoost
+- **Extension:** Chrome Extension (Manifest V3)
 
 ## 6. Machine-Learning Pipeline
 The pipeline normalizes the input URL, extracts features via local parsing and live network requests (HTML scraping), and builds a feature vector.
@@ -62,6 +65,7 @@ Gracefully handles missing or unreachable features (e.g., timeout when fetching 
 ## 14. Technology Stack
 - **Frontend:** React, Vite, CSS
 - **Backend:** Python, FastAPI, XGBoost, BeautifulSoup, requests
+- **Extension:** HTML, CSS, Vanilla JS
 
 ## 15. Backend Setup
 ```bash
@@ -79,34 +83,36 @@ npm install
 npm run dev
 ```
 
-## 17. Environment Variables
-- Backend: `.env` (See `.env.example` for `VT_API_KEY`)
-- Frontend: `.env.local` (`VITE_API_BASE_URL`)
+## 17. Extension Setup
+Load the `extension/` directory as an unpacked extension in Chrome via `chrome://extensions`.
 
-## 18. Running Locally
+## 18. Environment Variables
+- Backend: `.env` (See `.env.example` for `VT_API_KEY`)
+- Frontend: `.env.local` (`VITE_API_BASE_URL=http://localhost:8000`)
+
+## 19. Running Locally
 Ensure both backend and frontend servers are running concurrently.
 
-## 19. API Overview
+## 20. API Overview
 - `POST /predict`: Main endpoint accepting a URL string, returning ML predictions, explainability metrics, and deterministic forensic findings.
 
-## 20. Project Structure
+## 21. Project Structure
 ```
 PhishShieldAI/
 ├── backend/            # FastAPI, Extractors, Services, Models
 ├── frontend/           # React, Vite, Dashboard UI
+├── extension/          # Browser Extension
 ├── checkpoints/        # Development Phase Tracking
 └── README.md
 ```
 
-## 21. Security Considerations
-API keys and environment secrets must be stored securely and excluded from source control. Forms and internal components use secure communication practices where available.
+## 22. Security Considerations
+API keys and environment secrets must be stored securely and excluded from source control. Forms and internal components use secure communication practices where available. QR scanning executes strictly as a local parsing action without remote fetching.
 
-## 22. Current Development Status
-Risk Intelligence & Forensic Layer is fully implemented. The initial Dashboard and Engine architectures are stable.
+## 23. Current Development Status
+Risk Intelligence, Forensic Layer, Browser Extension, and QR Scanning are fully implemented. 
 
-## 23. Future Modules (Planned/Upcoming)
-- Browser Extension
-- QR scanning
+## 24. Future Modules (Planned/Upcoming)
 - Email scanning
 - Authentication
 - Scan history/analytics
