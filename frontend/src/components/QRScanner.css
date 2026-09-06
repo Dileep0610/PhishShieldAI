@@ -2,7 +2,7 @@
 .scanner-tabs {
   display: flex;
   margin-bottom: 25px;
-  background-color: var(--bg-card);
+  background-color: var(--card);
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -22,7 +22,7 @@
 
 .tab-btn:hover:not(:disabled) {
   color: var(--text-main);
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-overlay-hover);
 }
 
 .tab-btn.active {
@@ -37,7 +37,7 @@
 
 /* QR Scanner */
 .qr-scanner {
-  background-color: var(--bg-card);
+  background-color: var(--card);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 30px;
@@ -67,7 +67,7 @@
 
 .file-upload-btn {
   display: inline-block;
-  background-color: var(--bg-dark);
+  background-color: var(--background);
   border: 1px solid var(--border);
   cursor: pointer;
   padding: 15px 30px;
@@ -79,7 +79,7 @@
 }
 
 .file-upload-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-overlay-hover);
 }
 
 .qr-reader-active {
@@ -89,7 +89,7 @@
   border: 2px solid var(--accent);
   border-radius: 8px;
   overflow: hidden;
-  background-color: var(--bg-dark);
+  background-color: var(--background);
 }
 
 .qr-reader-hidden {
@@ -102,7 +102,7 @@
 
 .decoded-result {
   text-align: left;
-  background-color: var(--bg-dark);
+  background-color: var(--background);
   padding: 25px;
   border-radius: 8px;
   border: 1px solid var(--border);

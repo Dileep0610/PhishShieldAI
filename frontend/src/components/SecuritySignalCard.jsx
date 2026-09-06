@@ -1,4 +1,4 @@
-export default function SecuritySignalCard({ title, value, status = 'neutral' }) {
+export default function SecuritySignalCard({ title, value, status = 'neutral', children }) {
   // status: 'safe', 'danger', 'neutral', 'unavailable'
   const getStatusClass = () => {
     switch(status) {
@@ -13,6 +13,14 @@ export default function SecuritySignalCard({ title, value, status = 'neutral' })
     <div className={`signal-card ${getStatusClass()}`}>
       <div className="signal-title">{title}</div>
       <div className="signal-value">{value}</div>
+      {children && (
+        <details className="signal-details">
+          <summary>Details</summary>
+          <div className="signal-details-content">
+            {children}
+          </div>
+        </details>
+      )}
     </div>
   );
 }

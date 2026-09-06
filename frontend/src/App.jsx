@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import UrlScanner from './components/UrlScanner';
 import QRScanner from './components/QRScanner';
@@ -11,6 +11,21 @@ function App() {
   const [scanResult, setScanResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [activeTab, setActiveTab] = useState('URL');
+
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   const handleScan = async (url) => {
     setScanStatus('SCANNING');
@@ -41,7 +56,7 @@ function App() {
 
   return (
     <div className="app-layout">
-      <Header />
+      <Header theme={theme} toggleTheme={toggleTheme} />
       <main className="container main-content">
         <div className="scanner-tabs">
           <button 

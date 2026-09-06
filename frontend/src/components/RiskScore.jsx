@@ -32,7 +32,7 @@ export default function RiskScore({ score, riskLevel }) {
       <div className="risk-meter-track" aria-hidden="true">
         <div 
           className="risk-meter-fill" 
-          style={{ width: `${percentage}%`, backgroundColor: color }}
+          style={{ '--target-width': `${percentage}%`, backgroundColor: color }}
         ></div>
       </div>
     </div>
