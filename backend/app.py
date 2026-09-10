@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes.predict import router as predict_router
+from routes.email_predict import router as email_predict_router
 from routes.health import router as health_router
 from config.settings import ALLOWED_ORIGINS
 
@@ -20,4 +21,5 @@ app.add_middleware(
 )
 
 app.include_router(predict_router)
+app.include_router(email_predict_router)
 app.include_router(health_router)

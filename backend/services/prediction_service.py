@@ -252,3 +252,58 @@ class PredictionService:
             
             "forensic_report": forensic_report
         }
+
+    def analyze_url(self, url: str) -> dict:
+        """
+        Runs the full URL analysis pipeline and computes API-friendly formatting 
+        including risk level and recommendation, replicating the logic in the HTTP route.
+        """
+        start_time = time.time()
+        result = self.predict(url)
+
+        # Map to "Phishing" or "Legitimate"
+        prediction_label = "Phishing" if result["prediction"] == 1 else "Legitimate"
+        confidence = result["confidence"]
+        risk_score = result["risk_score"]
+
+        # Risk Level
+        if risk_score <= 15:
+            risk = "Very Safe"
+        elif risk_score <= 30:
+            risk = "Safe"
+        elif risk_score <= 50:
+            risk = "Suspicious"
+        elif risk_score <= 75:
+            risk = "High Risk"
+        else:
+            risk = "Very High Risk"
+
+        # Recommendation
+        if prediction_label == "Phishing":
+            recommendation = (
+                "Warning! This website appears to be a phishing site. "
+                "Do not enter passwords, banking details, or personal information."
+            )
+        else:
+            recommendation = (
+                "This website appears legitimate. "
+                "Always verify the URL before entering sensitive information."
+            )
+
+        elapsed = round((time.time() - start_time) * 1000, 2)
+
+        return {
+            "url": url,
+            "prediction": prediction_label,
+            "confidence": confidence,
+            "risk_score": risk_score,
+            "risk_level": risk,
+            "processing_time_ms": elapsed,
+            "recommendation": recommendation,
+            "whois": result["whois"],
+            "ssl": result["ssl"],
+            "redirect": result["redirect"],
+            "virustotal": result["virustotal"],
+            "explainability": result.get("explainability"),
+            "forensic_report": result.get("forensic_report")
+        }

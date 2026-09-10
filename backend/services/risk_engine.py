@@ -44,7 +44,7 @@ class RiskEngine:
                 risk += 35
 
             else:
-                risk += 25
+                risk += 31
 
         else:
 

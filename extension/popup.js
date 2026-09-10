@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessage = document.getElementById('error-message');
     const resultBadge = document.getElementById('result-badge');
     const riskScoreDisplay = document.getElementById('risk-score');
+    const riskLevelDisplay = document.getElementById('risk-level');
     const confidenceScoreDisplay = document.getElementById('confidence-score');
     
     // Security Signals
@@ -137,11 +138,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderSuccessState(url, data) {
+        // Prefer security_report if available
+        const report = data.security_report || {};
+        const verdict = report.verdict || {};
+        const mlEvidence = report.ml_evidence || {};
+        const urlEvidence = report.url_evidence || {};
+        const threatIntel = report.threat_intelligence || {};
+
         // Scanned URL
-        urlDisplay.textContent = url;
+        urlDisplay.textContent = urlEvidence.url || url;
         
         // Primary Verdict
-        const prediction = data.prediction;
+        const prediction = verdict.prediction || data.prediction;
         resultBadge.textContent = prediction || "UNKNOWN";
         if (prediction === "Phishing") {
             resultBadge.className = "badge phishing";
@@ -153,44 +161,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Risk Score
-        if (data.risk_score !== undefined && data.risk_score !== null) {
-            riskScoreDisplay.textContent = data.risk_score;
+        const riskScore = data.risk_score;
+        if (riskScore !== undefined && riskScore !== null) {
+            riskScoreDisplay.textContent = riskScore;
         } else {
             riskScoreDisplay.textContent = 'Unavailable';
         }
         
+        // Risk Level
+        const riskLevel = verdict.risk_level || data.risk_level;
+        if (riskLevel) {
+            riskLevelDisplay.textContent = riskLevel;
+        } else {
+            riskLevelDisplay.textContent = 'Unavailable';
+        }
+        
         // Confidence
-        if (data.confidence !== undefined && data.confidence !== null) {
-            confidenceScoreDisplay.textContent = `${data.confidence.toFixed(1)}%`;
+        const confidence = mlEvidence.confidence !== undefined ? mlEvidence.confidence : data.confidence;
+        if (confidence !== undefined && confidence !== null) {
+            confidenceScoreDisplay.textContent = `${confidence.toFixed(1)}%`;
         } else {
             confidenceScoreDisplay.textContent = 'Unavailable';
         }
 
         // Security Signals
         // SSL
-        if (data.ssl) {
-            signalSsl.textContent = data.ssl.ssl_valid ? 'Valid' : 'Invalid';
+        const ssl = threatIntel.ssl || data.ssl;
+        if (ssl) {
+            signalSsl.textContent = ssl.ssl_valid ? 'Valid' : 'Invalid';
         } else {
             signalSsl.textContent = 'Unavailable';
         }
         
         // Redirects
-        if (data.redirect && data.redirect.redirect_count !== undefined) {
-            signalRedirects.textContent = data.redirect.redirect_count.toString();
+        const redirect = threatIntel.redirect || data.redirect;
+        if (redirect && redirect.redirect_count !== undefined) {
+            signalRedirects.textContent = redirect.redirect_count.toString();
         } else {
             signalRedirects.textContent = 'Unavailable';
         }
         
         // VirusTotal
-        if (data.virustotal && data.virustotal.malicious !== undefined) {
-            signalVt.textContent = `${data.virustotal.malicious} Malicious`;
+        const vt = threatIntel.virustotal || data.virustotal;
+        if (vt && vt.malicious !== undefined) {
+            signalVt.textContent = `${vt.malicious} Malicious`;
         } else {
             signalVt.textContent = 'Unavailable';
         }
         
         // Domain Age
-        if (data.whois && data.whois.domain_age_days !== undefined && data.whois.domain_age_days !== null) {
-            signalDomain.textContent = `${data.whois.domain_age_days} days`;
+        const whois = threatIntel.whois || data.whois;
+        if (whois && whois.domain_age_days !== undefined && whois.domain_age_days !== null) {
+            signalDomain.textContent = `${whois.domain_age_days} days`;
         } else {
             signalDomain.textContent = 'Unavailable';
         }
@@ -237,7 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Recommendation
-        recommendationArea.textContent = data.recommendation || 'Recommendation unavailable';
+        const recommendation = verdict.recommendation || data.recommendation;
+        recommendationArea.textContent = recommendation || 'Recommendation unavailable';
         
         setUIState('SUCCESS');
     }

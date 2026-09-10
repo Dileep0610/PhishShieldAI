@@ -144,3 +144,67 @@ class PredictionResponse(BaseModel):
     explainability: Optional[ExplainabilityModel] = None
 
     forensic_report: Optional[ForensicReport] = None
+    
+    security_report: Optional[Any] = None
+
+class EmailForensicSummary(BaseModel):
+    indicator_count: int
+    high_severity_count: int
+    medium_severity_count: int
+    low_severity_count: int
+
+class EmailForensicFinding(BaseModel):
+    indicator: str
+    detected: bool
+    severity: str
+    locations: List[str]
+    description: str
+
+class EmailMLEvidence(BaseModel):
+    prediction: str
+    decision_score: float
+
+class EmailURLEvidence(BaseModel):
+    url: str
+    prediction: str
+    risk_level: str
+
+class EmailExplainability(BaseModel):
+    explanation_summary: str
+    explanation_reasons: List[str]
+    ml_evidence: EmailMLEvidence
+    forensic_evidence: List[EmailForensicFinding]
+    url_evidence: List[EmailURLEvidence]
+
+class SecurityVerdict(BaseModel):
+    prediction: str
+    risk_level: str
+    primary_reason: Optional[str] = None
+    recommendation: Optional[str] = None
+
+class SecurityMetadata(BaseModel):
+    processing_time_ms: float
+
+class SecurityReport(BaseModel):
+    analysis_type: str
+    verdict: SecurityVerdict
+    metadata: SecurityMetadata
+    ml_evidence: Optional[Any] = None
+    forensic_evidence: Optional[Any] = None
+    url_evidence: Optional[Any] = None
+    threat_intelligence: Optional[Any] = None
+    explainability: Optional[Any] = None
+
+class EmailPredictionResponse(BaseModel):
+    prediction: str
+    decision_score: float
+    processing_time_ms: float
+    extracted_urls: List[str] = []
+    url_analysis: List[PredictionResponse] = []
+    overall_prediction: str = ""
+    overall_risk_level: str = ""
+    primary_reason: str = ""
+    forensic_summary: Optional[EmailForensicSummary] = None
+    forensic_indicators: List[EmailForensicFinding] = []
+    explainability: Optional[EmailExplainability] = None
+    security_report: Optional[SecurityReport] = None

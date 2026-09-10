@@ -1,0 +1,4 @@
+{
+  "checkpoint": "pre_phase_10_ui_redesign_rollback",
+  "summary": "Safely rolled back all rejected UI/UX redesign experiments, returning the frontend working directory identically to GitHub commit c9d4790 without pushing or committing."
+}

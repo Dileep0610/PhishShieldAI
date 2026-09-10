@@ -32,125 +32,34 @@ def predict(request: URLRequest):
 
     try:
 
-        result = service.predict(url_str)
-
-        # -----------------------------
-        # Prediction
-        # -----------------------------
-
-        prediction = (
-            "Phishing"
-            if result["prediction"] == 1
-            else "Legitimate"
+        result = service.analyze_url(url_str)
+        
+        # Build Unified Security Report
+        from schemas.response_models import SecurityReport, SecurityVerdict, SecurityMetadata
+        
+        security_report = SecurityReport(
+            analysis_type="url",
+            verdict=SecurityVerdict(
+                prediction=result.get("prediction", ""),
+                risk_level=result.get("risk_level", ""),
+                recommendation=result.get("recommendation", "")
+            ),
+            metadata=SecurityMetadata(
+                processing_time_ms=result.get("processing_time_ms", 0.0)
+            ),
+            ml_evidence={"prediction": result.get("prediction", ""), "confidence": result.get("confidence", 0.0)},
+            url_evidence={"url": result.get("url", "")},
+            threat_intelligence={
+                "whois": result.get("whois", {}),
+                "ssl": result.get("ssl", {}),
+                "redirect": result.get("redirect", {}),
+                "virustotal": result.get("virustotal", {})
+            }
         )
+        
+        result["security_report"] = security_report
 
-        confidence = result["confidence"]
-
-        risk_score = result["risk_score"]
-
-        # -----------------------------
-        # Risk Level
-        # -----------------------------
-
-        if prediction == "Phishing":
-
-            if confidence >= 75:
-
-                risk = "Very High Risk"
-
-            elif confidence >= 60:
-
-                risk = "High Risk"
-
-            else:
-
-                risk = "Suspicious"
-
-        else:
-
-            if risk_score <= 15:
-
-                risk = "Very Safe"
-
-            elif risk_score <= 30:
-
-                risk = "Safe"
-
-            elif risk_score <= 50:
-
-                risk = "Suspicious"
-
-            elif risk_score <= 75:
-
-                risk = "High Risk"
-
-            else:
-
-                risk = "Very High Risk"
-
-        # -----------------------------
-        # Recommendation
-        # -----------------------------
-
-        if prediction == "Phishing":
-
-            recommendation = (
-                "Warning! This website appears to be a phishing site. "
-                "Do not enter passwords, banking details, or personal information."
-            )
-
-        else:
-
-            recommendation = (
-                "This website appears legitimate. "
-                "Always verify the URL before entering sensitive information."
-            )
-
-        # -----------------------------
-        # Processing Time
-        # -----------------------------
-
-        elapsed = round(
-            (time.time() - start_time) * 1000,
-            2
-        )
-
-        logger.info(
-            f"Prediction completed in {elapsed} ms"
-        )
-
-        # -----------------------------
-        # API Response
-        # -----------------------------
-
-        return PredictionResponse(
-
-            url=str(request.url),
-
-            prediction=prediction,
-
-            confidence=confidence,
-
-            risk_score=risk_score,
-
-            risk_level=risk,
-
-            processing_time_ms=elapsed,
-
-            recommendation=recommendation,
-
-            whois=result["whois"],
-
-            ssl=result["ssl"],
-
-            redirect=result["redirect"],
-
-            virustotal=result["virustotal"],
-
-            explainability=result.get("explainability"),
-            
-            forensic_report=result.get("forensic_report")
-        )
+        return PredictionResponse(**result)
 
     except Exception as e:
         

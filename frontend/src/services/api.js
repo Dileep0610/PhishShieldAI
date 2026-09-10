@@ -19,3 +19,23 @@ export const predictUrl = async (url) => {
     throw new Error(err.message || 'Network error occurred while reaching the server.');
   }
 };
+
+export const analyzeEmail = async (subject, body) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/analyze-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ subject, body }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}: Temporary failure or invalid request.`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    throw new Error(err.message || 'Network error occurred while reaching the server.');
+  }
+};

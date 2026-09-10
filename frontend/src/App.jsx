@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import UrlScanner from './components/UrlScanner';
 import QRScanner from './components/QRScanner';
+import EmailScanner from './components/EmailScanner';
 import ScanResult from './components/ScanResult';
-import { predictUrl } from './services/api';
+import EmailScanResult from './components/EmailScanResult';
+import { predictUrl, analyzeEmail } from './services/api';
 import './index.css';
 
 function App() {
@@ -42,6 +44,21 @@ function App() {
     }
   };
 
+  const handleEmailScan = async (subject, body) => {
+    setScanStatus('SCANNING');
+    setErrorMessage('');
+    setScanResult(null);
+
+    try {
+      const data = await analyzeEmail(subject, body);
+      setScanResult(data);
+      setScanStatus('SUCCESS');
+    } catch (err) {
+      setErrorMessage(err.message);
+      setScanStatus('ERROR');
+    }
+  };
+
   const handleReset = () => {
     setScanStatus('IDLE');
     setScanResult(null);
@@ -68,6 +85,14 @@ function App() {
             URL Scanner
           </button>
           <button 
+            className={`tab-btn ${activeTab === 'EMAIL' ? 'active' : ''}`}
+            onClick={() => switchTab('EMAIL')}
+            disabled={scanStatus === 'SCANNING'}
+            aria-selected={activeTab === 'EMAIL'}
+          >
+            Email Analysis
+          </button>
+          <button 
             className={`tab-btn ${activeTab === 'QR' ? 'active' : ''}`}
             onClick={() => switchTab('QR')}
             disabled={scanStatus === 'SCANNING'}
@@ -81,6 +106,18 @@ function App() {
           <>
             <UrlScanner onScan={handleScan} isScanning={scanStatus === 'SCANNING'} />
             <ScanResult 
+              status={scanStatus} 
+              result={scanResult} 
+              error={errorMessage} 
+              onReset={handleReset} 
+            />
+          </>
+        )}
+
+        {activeTab === 'EMAIL' && (
+          <>
+            <EmailScanner onScan={handleEmailScan} isScanning={scanStatus === 'SCANNING'} />
+            <EmailScanResult 
               status={scanStatus} 
               result={scanResult} 
               error={errorMessage} 
