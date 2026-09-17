@@ -9,6 +9,6 @@ def health():
     return {
         "status": "healthy",
         "service": "PhishShield AI",
-        "model": "Random Forest",
+        "model": "XGBoost",
         "version": "1.0"
     }
