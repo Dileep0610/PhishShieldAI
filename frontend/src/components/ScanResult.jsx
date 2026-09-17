@@ -34,7 +34,9 @@ export default function ScanResult({ status, result, error, onReset }) {
   }
 
   if (status === 'SUCCESS' && result) {
-    const isPhishing = result.prediction === 'Phishing';
+    // Determine final verdict from unified security report if available, else fallback
+    const finalVerdict = result.security_report?.verdict?.prediction || result.final_security_verdict || result.prediction;
+    const isPhishing = finalVerdict === 'Phishing';
     
     // Parse Signals
     const sslStatus = !result.ssl ? 'unavailable' : result.ssl.ssl_valid ? 'safe' : 'danger';
@@ -62,7 +64,7 @@ export default function ScanResult({ status, result, error, onReset }) {
         {/* Header Section */}
         <div className="dashboard-header">
           <h2 className={isPhishing ? 'text-danger' : 'text-safe'}>
-            {isPhishing ? 'PHISHING' : 'SAFE'}
+            {isPhishing ? 'PHISHING' : 'LEGITIMATE'}
           </h2>
           <div className="dashboard-risk-level">
             Risk Level: <strong>{result.risk_level ? result.risk_level.toUpperCase() : 'UNAVAILABLE'}</strong>
@@ -89,7 +91,7 @@ export default function ScanResult({ status, result, error, onReset }) {
             Security Signals
           </h3>
           <div className="signals-grid">
-            <SecuritySignalCard title="SSL" value={sslValue} status={sslStatus}>
+            <SecuritySignalCard title="🔒 SSL Certificate" value={sslValue} status={sslStatus}>
               {result.ssl ? (
                 <>
                   <div><strong>Issuer:</strong> {result.ssl.issuer || 'Unknown'}</div>
@@ -102,7 +104,7 @@ export default function ScanResult({ status, result, error, onReset }) {
                 <div>SSL information unavailable</div>
               )}
             </SecuritySignalCard>
-            <SecuritySignalCard title="Redirects" value={redirectValue} status={redirectStatus}>
+            <SecuritySignalCard title="🔄 Redirects" value={redirectValue} status={redirectStatus}>
               {result.redirect ? (
                 <>
                   <div><strong>Final URL:</strong><br/><span style={{wordBreak: 'break-all'}}>{result.redirect.final_url || 'Unknown'}</span></div>
@@ -114,7 +116,7 @@ export default function ScanResult({ status, result, error, onReset }) {
                 <div>Redirect information unavailable</div>
               )}
             </SecuritySignalCard>
-            <SecuritySignalCard title="VirusTotal" value={vtValue} status={vtStatus}>
+            <SecuritySignalCard title="🛡️ VirusTotal" value={vtValue} status={vtStatus}>
               {result.virustotal ? (
                 <>
                   <div><strong>Malicious:</strong> {result.virustotal.malicious}</div>

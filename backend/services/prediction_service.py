@@ -146,52 +146,7 @@ class PredictionService:
 
 
         # =====================================================
-        # 5. RISK ENGINE
-        # =====================================================
-
-        risk_start = time.perf_counter()
-
-        risk_score = self.risk_engine.calculate(
-
-            prediction=prediction,
-
-            confidence=confidence,
-
-            whois=whois_info,
-
-            ssl=ssl_info,
-
-            redirect=redirect_info,
-
-            virustotal=vt_info
-        )
-
-        risk_time = round(
-            (time.perf_counter() - risk_start) * 1000,
-            2
-        )
-
-        logger.info(f"Risk Engine : {risk_time} ms")
-
-        # =====================================================
-        # 6. EXPLAINABILITY
-        # =====================================================
-
-        explainability_start = time.perf_counter()
-        
-        # Verify prediction integrity is maintained
-        explainability = self.explainability.generate_explanation(
-            model=self.model,
-            feature_names=self.pipeline.feature_names,
-            feature_vector=vector,
-            existing_whois_info=whois_info,
-            existing_ssl_info=ssl_info,
-            existing_redirect_info=redirect_info,
-            existing_virustotal_info=vt_info
-        )
-
-        # =====================================================
-        # 7. FORENSIC ENGINE
+        # 5. FORENSIC ENGINE
         # =====================================================
         
         forensic_start = time.perf_counter()
@@ -206,6 +161,55 @@ class PredictionService:
 
         forensic_time = round((time.perf_counter() - forensic_start) * 1000, 2)
         logger.info(f"Forensic Engine : {forensic_time} ms")
+
+        # =====================================================
+        # 6. RISK ENGINE
+        # =====================================================
+
+        risk_start = time.perf_counter()
+
+        risk_score, trust_assessment = self.risk_engine.calculate_with_trust(
+
+            prediction=prediction,
+
+            confidence=confidence,
+
+            whois=whois_info,
+
+            ssl=ssl_info,
+
+            redirect=redirect_info,
+
+            virustotal=vt_info,
+            
+            forensic_report=forensic_report,
+            
+            url=url
+        )
+
+        risk_time = round(
+            (time.perf_counter() - risk_start) * 1000,
+            2
+        )
+
+        logger.info(f"Risk Engine : {risk_time} ms")
+
+        # =====================================================
+        # 7. EXPLAINABILITY
+        # =====================================================
+
+        explainability_start = time.perf_counter()
+        
+        # Verify prediction integrity is maintained
+        explainability = self.explainability.generate_explanation(
+            model=self.model,
+            feature_names=self.pipeline.feature_names,
+            feature_vector=vector,
+            existing_whois_info=whois_info,
+            existing_ssl_info=ssl_info,
+            existing_redirect_info=redirect_info,
+            existing_virustotal_info=vt_info
+        )
 
         # =====================================================
         # 8. LOGGING
@@ -250,7 +254,9 @@ class PredictionService:
             
             "explainability": explainability,
             
-            "forensic_report": forensic_report
+            "forensic_report": forensic_report,
+            
+            "trust_assessment": trust_assessment
         }
 
     def analyze_url(self, url: str) -> dict:
@@ -262,9 +268,18 @@ class PredictionService:
         result = self.predict(url)
 
         # Map to "Phishing" or "Legitimate"
-        prediction_label = "Phishing" if result["prediction"] == 1 else "Legitimate"
+        ml_prediction_label = "Phishing" if result["prediction"] == 1 else "Legitimate"
         confidence = result["confidence"]
         risk_score = result["risk_score"]
+        
+        trust_assessment = result.get("trust_assessment") or {}
+        trusted_legitimate = trust_assessment.get("trusted_legitimate", False)
+        vetoed = trust_assessment.get("veto_status", False)
+        
+        if trusted_legitimate and not vetoed and result["prediction"] == 1:
+            final_verdict = "Legitimate"
+        else:
+            final_verdict = ml_prediction_label
 
         # Risk Level
         if risk_score <= 15:
@@ -279,22 +294,21 @@ class PredictionService:
             risk = "Very High Risk"
 
         # Recommendation
-        if prediction_label == "Phishing":
-            recommendation = (
-                "Warning! This website appears to be a phishing site. "
-                "Do not enter passwords, banking details, or personal information."
-            )
+        if risk == "Suspicious":
+            recommendation = "Exercise caution before interacting with this URL."
+        elif final_verdict == "Phishing":
+            recommendation = "Warning! This website shows strong indicators of phishing."
         else:
-            recommendation = (
-                "This website appears legitimate. "
-                "Always verify the URL before entering sensitive information."
-            )
+            recommendation = "This URL appears legitimate based on the available security and trust signals."
 
         elapsed = round((time.time() - start_time) * 1000, 2)
 
         return {
             "url": url,
-            "prediction": prediction_label,
+            "prediction": final_verdict,
+            "ml_prediction": ml_prediction_label,
+            "ml_confidence": confidence,
+            "final_security_verdict": final_verdict,
             "confidence": confidence,
             "risk_score": risk_score,
             "risk_level": risk,
@@ -305,5 +319,6 @@ class PredictionService:
             "redirect": result["redirect"],
             "virustotal": result["virustotal"],
             "explainability": result.get("explainability"),
-            "forensic_report": result.get("forensic_report")
+            "forensic_report": result.get("forensic_report"),
+            "trust_assessment": result.get("trust_assessment")
         }

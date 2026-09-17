@@ -40,21 +40,22 @@ def predict(request: URLRequest):
         security_report = SecurityReport(
             analysis_type="url",
             verdict=SecurityVerdict(
-                prediction=result.get("prediction", ""),
+                prediction=result.get("final_security_verdict", result.get("prediction", "")),
                 risk_level=result.get("risk_level", ""),
                 recommendation=result.get("recommendation", "")
             ),
             metadata=SecurityMetadata(
                 processing_time_ms=result.get("processing_time_ms", 0.0)
             ),
-            ml_evidence={"prediction": result.get("prediction", ""), "confidence": result.get("confidence", 0.0)},
+            ml_evidence={"prediction": result.get("ml_prediction", result.get("prediction", "")), "confidence": result.get("ml_confidence", result.get("confidence", 0.0))},
             url_evidence={"url": result.get("url", "")},
             threat_intelligence={
                 "whois": result.get("whois", {}),
                 "ssl": result.get("ssl", {}),
                 "redirect": result.get("redirect", {}),
                 "virustotal": result.get("virustotal", {})
-            }
+            },
+            trust_assessment=result.get("trust_assessment")
         )
         
         result["security_report"] = security_report

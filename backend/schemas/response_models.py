@@ -89,6 +89,17 @@ class ExplainabilityModel(BaseModel):
     threat_intelligence: Optional[ThreatIntelligence] = None
     unavailable_evidence: Optional[List[UnavailableEvidence]] = None
 
+class TrustAssessment(BaseModel):
+    eligible: bool
+    trust_score: int
+    signals: List[str]
+    veto_status: bool
+    veto_reason: Optional[str] = None
+    risk_adjustment: int
+    original_risk_score: float
+    final_risk_score: float
+    trusted_legitimate: Optional[bool] = False
+
 class ForensicCategory(str, Enum):
     URL = "URL"
     HTML = "HTML"
@@ -124,6 +135,12 @@ class PredictionResponse(BaseModel):
     prediction: str
 
     confidence: float
+    
+    ml_prediction: Optional[str] = None
+    
+    ml_confidence: Optional[float] = None
+    
+    final_security_verdict: Optional[str] = None
 
     risk_score: float
 
@@ -144,6 +161,8 @@ class PredictionResponse(BaseModel):
     explainability: Optional[ExplainabilityModel] = None
 
     forensic_report: Optional[ForensicReport] = None
+    
+    trust_assessment: Optional[TrustAssessment] = None
     
     security_report: Optional[Any] = None
 
@@ -194,6 +213,7 @@ class SecurityReport(BaseModel):
     url_evidence: Optional[Any] = None
     threat_intelligence: Optional[Any] = None
     explainability: Optional[Any] = None
+    trust_assessment: Optional[TrustAssessment] = None
 
 class EmailPredictionResponse(BaseModel):
     prediction: str
