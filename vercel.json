@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "services": {
+    "my_frontend": {
+      "root": "frontend/",
+      "framework": "vite"
+    },
+    "my_backend": {
+      "root": "backend/",
+      "entrypoint": "app:app"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/predict",
+      "destination": { "service": "my_backend" }
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": { "service": "my_backend" }
+    },
+    {
+      "source": "/health",
+      "destination": { "service": "my_backend" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "my_frontend" }
+    }
+  ]
+}
