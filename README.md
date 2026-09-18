@@ -16,6 +16,14 @@
 
 </div>
 
+## 🚀 Live Demo
+
+- **[PhishShield AI Web Platform](https://phishshieldai-xi.vercel.app/)**
+- 🌐 **Frontend:** Deployed on **Vercel**
+- ⚙️ **Backend:** Deployed on **Render**
+
+---
+
 ## 📖 1. Project Introduction
 
 PhishShield AI is an intelligent security-analysis platform designed for high-accuracy phishing detection. By combining advanced Machine Learning models, deterministic threat intelligence, and security forensics, the system delivers highly accurate and explainable results.
@@ -54,38 +62,52 @@ It supports:
 ## 🏗️ 3. System Architecture
 
 ```mermaid
-flowchart TD
-    User([User])
+flowchart TB
+    classDef primary fill:#4F46E5,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
+    classDef secondary fill:#10B981,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
+    classDef threat fill:#EF4444,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
+    classDef report fill:#F59E0B,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
+    classDef user fill:#374151,stroke:#fff,stroke-width:2px,color:#fff,rx:50px,ry:50px;
 
-    subgraph UserInterfaces [User Interfaces]
-        WebDash[Web Dashboard]
-        QRScan[QR Scanner]
-        BrowserExt[URL Browser Extension]
+    User([👤 User]):::user
+
+    subgraph Interfaces [🖥️ User Interfaces]
+        direction LR
+        WebDash[🌐 Web Dashboard]:::primary
+        QRScan[📱 QR Scanner]:::primary
+        BrowserExt[🧩 Browser Extension]:::primary
     end
 
-    subgraph Backend [FastAPI Backend]
-        API[FastAPI Gateway]
+    subgraph CoreBackend [⚙️ FastAPI Backend]
+        API{API Gateway}:::secondary
     end
 
-    subgraph AnalysisEngine [Analysis & Intelligence]
-        URLAnalysis[URL Analysis]
-        EmailAnalysis[Email Analysis]
-        URLExtract[URL Extraction]
-        Risk[Risk Engine]
-        Forensics[Forensic Analysis]
-        Explain[Explainability]
+    subgraph ML_Engine [🧠 Machine Learning & Intelligence]
+        direction TB
+        URLAnalysis[🔗 URL Analysis]:::primary
+        EmailAnalysis[📧 Email Analysis]:::primary
+        URLExtract[✂️ URL Extraction]:::primary
         
-        Models[ML Models]
-        WHOIS[WHOIS]
-        SSL[SSL/TLS]
-        Redirects[Redirect Analysis]
-        VT[VirusTotal]
-    end
-    
-    subgraph Report [Security Report]
-        Verdict[Final Security Verdict: Prediction, Risk Level, Score, Evidence, Recommendations]
+        Models[🤖 ML Models]:::secondary
+        Explain[💡 Explainability]:::secondary
+        
+        subgraph ThreatIntel [Threat Intelligence]
+            direction LR
+            WHOIS[🌐 WHOIS]:::threat
+            SSL[🔒 SSL/TLS]:::threat
+            Redirects[🔄 Redirects]:::threat
+            VT[🦠 VirusTotal]:::threat
+            Forensics[🕵️ Forensics]:::threat
+        end
+        
+        Risk[⚖️ Risk Engine]:::secondary
     end
 
+    subgraph Output [🛡️ Security Report]
+        Verdict[[📝 Final Security Verdict & Risk Score]]:::report
+    end
+
+    %% Connections
     User --> WebDash
     User --> QRScan
     User --> BrowserExt
@@ -103,19 +125,11 @@ flowchart TD
     URLAnalysis --> Models
     EmailAnalysis --> Models
     
-    URLAnalysis --> WHOIS
-    URLAnalysis --> SSL
-    URLAnalysis --> Redirects
-    URLAnalysis --> VT
-    URLAnalysis --> Forensics
+    URLAnalysis --> ThreatIntel
     EmailAnalysis --> Forensics
     
     Models --> Risk
-    WHOIS --> Risk
-    SSL --> Risk
-    Redirects --> Risk
-    VT --> Risk
-    Forensics --> Risk
+    ThreatIntel --> Risk
     
     Models --> Explain
     
