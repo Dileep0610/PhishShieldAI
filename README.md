@@ -231,21 +231,22 @@ PhishShieldAI/
 
 ## 📊 12. ML Performance
 
-**URL Models:**
-| Model | Accuracy |
-| :--- | :--- |
-| Decision Tree | 96.50% |
-| XGBoost | 98.50% |
-| Random Forest | 98.60% |
-| Optimized Random Forest | 98.65% |
+**URL Phishing Detection:**
+| Rank | Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **XGBoost** | **98.80%** | 98.16% | **99.47%** | **98.81%** | **99.95%** |
+| 2 | **Random Forest** | 98.67% | **98.28%** | 99.07% | 98.67% | **99.95%** |
+| 3 | MLP | 96.80% | 96.31% | 97.33% | 96.82% | 99.32% |
+| 4 | **ResMLP** | 96.33% | 95.78% | 96.93% | 96.36% | 99.32% |
+| 5 | Logistic Regression | 95.13% | 94.48% | 95.87% | 95.17% | 98.68% |
 
-**Email Models:**
-| Model | Accuracy |
-| :--- | :--- |
-| Multinomial Naive Bayes | 98.28% |
-| Logistic Regression | 99.53% |
-| BiLSTM *(Experimental)* | 99.65% |
-| **Linear SVM** *(Production)* | **99.76%** |
+**Email Phishing Detection:**
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Logistic Regression | 99.53% | 99.68% | 99.47% | 99.57% | 99.97% |
+| Naive Bayes | 98.28% | 99.86% | 97.05% | 98.43% | 99.86% |
+| **Linear SVM** | **99.76%** | **99.91%** | **99.65%** | **99.78%** | **100.00%** |
+| **BiLSTM** | **99.65%** | **99.75%** | **99.63%** | **99.69%** | **99.98%** |
 
 ---
 
