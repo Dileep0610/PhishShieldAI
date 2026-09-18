@@ -63,78 +63,60 @@ It supports:
 
 ```mermaid
 flowchart TB
-    classDef primary fill:#4F46E5,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
-    classDef secondary fill:#10B981,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
-    classDef threat fill:#EF4444,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
-    classDef report fill:#F59E0B,stroke:#fff,stroke-width:2px,color:#fff,rx:8px,ry:8px;
-    classDef user fill:#374151,stroke:#fff,stroke-width:2px,color:#fff,rx:50px,ry:50px;
-
-    User([👤 User]):::user
-
-    subgraph Interfaces [🖥️ User Interfaces]
-        direction LR
-        WebDash[🌐 Web Dashboard]:::primary
-        QRScan[📱 QR Scanner]:::primary
-        BrowserExt[🧩 Browser Extension]:::primary
-    end
-
-    subgraph CoreBackend [⚙️ FastAPI Backend]
-        API{API Gateway}:::secondary
-    end
-
-    subgraph ML_Engine [🧠 Machine Learning & Intelligence]
-        direction TB
-        URLAnalysis[🔗 URL Analysis]:::primary
-        EmailAnalysis[📧 Email Analysis]:::primary
-        URLExtract[✂️ URL Extraction]:::primary
-        
-        Models[🤖 ML Models]:::secondary
-        Explain[💡 Explainability]:::secondary
-        
-        subgraph ThreatIntel [Threat Intelligence]
-            direction LR
-            WHOIS[🌐 WHOIS]:::threat
-            SSL[🔒 SSL/TLS]:::threat
-            Redirects[🔄 Redirects]:::threat
-            VT[🦠 VirusTotal]:::threat
-            Forensics[🕵️ Forensics]:::threat
-        end
-        
-        Risk[⚖️ Risk Engine]:::secondary
-    end
-
-    subgraph Output [🛡️ Security Report]
-        Verdict[[📝 Final Security Verdict & Risk Score]]:::report
-    end
-
-    %% Connections
-    User --> WebDash
-    User --> QRScan
-    User --> BrowserExt
-
-    WebDash --> API
-    QRScan --> API
-    BrowserExt --> API
-
-    API --> URLAnalysis
-    API --> EmailAnalysis
+    PAI[PHISHSHIELD AI]
     
-    EmailAnalysis --> URLExtract
-    URLExtract --> URLAnalysis
+    WEBSITE[WEBSITE]
+    EMAIL[EMAIL]
+    QR[QR]
     
-    URLAnalysis --> Models
-    EmailAnalysis --> Models
+    PAI --> WEBSITE
+    PAI --> EMAIL
+    PAI --> QR
     
-    URLAnalysis --> ThreatIntel
-    EmailAnalysis --> Forensics
+    EMODEL[EMAIL MODEL]
+    EXTURL[Extract URLs]
     
-    Models --> Risk
-    ThreatIntel --> Risk
+    EMAIL --> EMODEL
+    EMODEL --> EXTURL
     
-    Models --> Explain
+    URLNORM[URL NORMALIZATION]
     
-    Risk --> Verdict
-    Explain --> Verdict
+    WEBSITE --> URLNORM
+    EXTURL --> URLNORM
+    QR --> URLNORM
+    
+    FEXT[FEATURE EXTRACTION]
+    MLDET[ML detection]
+    PRED[PREDICTION + CONFIDENCE]
+    TI[THREAT INTELLIGENCE]
+    
+    URLNORM --> FEXT
+    FEXT --> MLDET
+    MLDET --> PRED
+    PRED --> TI
+    
+    WHOIS[WHOIS]
+    SSL[SSL]
+    REDIRECT[REDIRECT]
+    VT[VIRUSTOTAL]
+    
+    TI --> WHOIS
+    TI --> SSL
+    TI --> REDIRECT
+    TI --> VT
+    
+    RENGINE[RISK ENGINE]
+    
+    WHOIS --> RENGINE
+    SSL --> RENGINE
+    REDIRECT --> RENGINE
+    VT --> RENGINE
+    
+    SCORE[RISK SCORE + EVIDENCE]
+    SEC[SECURITY RECOMMENDATION]
+    
+    RENGINE --> SCORE
+    SCORE --> SEC
 ```
 
 ---
