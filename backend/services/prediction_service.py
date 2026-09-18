@@ -264,6 +264,9 @@ class PredictionService:
         Runs the full URL analysis pipeline and computes API-friendly formatting 
         including risk level and recommendation, replicating the logic in the HTTP route.
         """
+        from utils.url import normalize_url
+        url = normalize_url(url)
+        
         start_time = time.time()
         result = self.predict(url)
 

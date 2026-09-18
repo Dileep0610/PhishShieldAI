@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Tuple
 
-def aggregate_email_risk(email_prediction: str, decision_score: float, url_analysis: List[Dict[str, Any]]) -> Dict[str, str]:
+def aggregate_email_risk(email_prediction: str, decision_score: float, url_analysis: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Deterministically aggregates email and URL signals into an overall risk assessment.
     """
@@ -24,9 +24,11 @@ def aggregate_email_risk(email_prediction: str, decision_score: float, url_analy
         highest_risk_url = max(valid_urls, key=lambda u: url_severities[u["risk_level"]])
         max_url_level = highest_risk_url["risk_level"]
         max_url_severity = url_severities[max_url_level]
+        overall_risk_score = max(u.get("risk_score", 0.0) for u in valid_urls)
     else:
         max_url_severity = -1
         max_url_level = None
+        overall_risk_score = None
 
     overall_prediction = email_prediction
     overall_risk_level = "Unknown"
@@ -49,6 +51,7 @@ def aggregate_email_risk(email_prediction: str, decision_score: float, url_analy
         return {
             "overall_prediction": overall_prediction,
             "overall_risk_level": overall_risk_level,
+            "overall_risk_score": overall_risk_score,
             "primary_reason": primary_reason
         }
 
@@ -88,5 +91,6 @@ def aggregate_email_risk(email_prediction: str, decision_score: float, url_analy
     return {
         "overall_prediction": overall_prediction,
         "overall_risk_level": overall_risk_level,
+        "overall_risk_score": overall_risk_score,
         "primary_reason": primary_reason
     }

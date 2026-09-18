@@ -58,6 +58,8 @@ export default function EmailScanResult({ status, result, error, onReset }) {
     // Explainability
     const explainability = report ? report.explainability : result.explainability;
 
+    const emailRiskScore = report ? report.verdict.risk_score : result.overall_risk_score;
+
     return (
       <div className={`result-dashboard ${isPhishing ? 'dashboard-phishing' : 'dashboard-safe'}`} aria-live="assertive">
         
@@ -71,7 +73,7 @@ export default function EmailScanResult({ status, result, error, onReset }) {
           </div>
           {/* Note: RiskScore currently takes a score (0-100), decision score is not a 0-100 score. 
               We pass riskLevel directly to RiskScore if score isn't relevant, or omit score if it's ML decision score. */}
-          <RiskScore riskLevel={riskLevel} />
+          <RiskScore score={emailRiskScore} riskLevel={riskLevel} />
           
           {primaryReason && (
              <div className="mt-2 text-muted">

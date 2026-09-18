@@ -198,6 +198,7 @@ class EmailExplainability(BaseModel):
 class SecurityVerdict(BaseModel):
     prediction: str
     risk_level: str
+    risk_score: Optional[float] = None
     primary_reason: Optional[str] = None
     recommendation: Optional[str] = None
 
@@ -223,6 +224,7 @@ class EmailPredictionResponse(BaseModel):
     url_analysis: List[PredictionResponse] = []
     overall_prediction: str = ""
     overall_risk_level: str = ""
+    overall_risk_score: Optional[float] = None
     primary_reason: str = ""
     forensic_summary: Optional[EmailForensicSummary] = None
     forensic_indicators: List[EmailForensicFinding] = []

@@ -44,6 +44,7 @@ def analyze_email(request: EmailRequest):
         for url in extracted_urls:
             try:
                 analysis = url_service.analyze_url(url)
+                analysis["url"] = url  # Restore original extracted URL for frontend mapping
                 url_analysis.append(analysis)
             except Exception as e:
                 logger.error(f"URL analysis failed for {url}: {e}")
@@ -91,6 +92,7 @@ def analyze_email(request: EmailRequest):
             verdict=SecurityVerdict(
                 prediction=aggregated["overall_prediction"],
                 risk_level=aggregated["overall_risk_level"],
+                risk_score=aggregated["overall_risk_score"],
                 primary_reason=aggregated["primary_reason"]
             ),
             metadata=SecurityMetadata(
@@ -110,6 +112,7 @@ def analyze_email(request: EmailRequest):
             url_analysis=url_analysis,
             overall_prediction=aggregated["overall_prediction"],
             overall_risk_level=aggregated["overall_risk_level"],
+            overall_risk_score=aggregated["overall_risk_score"],
             primary_reason=aggregated["primary_reason"],
             forensic_summary=forensics_result["forensic_summary"],
             forensic_indicators=forensics_result["indicators"],

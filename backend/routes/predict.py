@@ -20,13 +20,11 @@ service = PredictionService()
 )
 def predict(request: URLRequest):
 
-    url_str = str(request.url)
-    if not url_str or not url_str.strip():
-        raise HTTPException(status_code=400, detail="Invalid URL")
-    
-    parsed = urllib.parse.urlparse(url_str)
-    if parsed.scheme not in ("http", "https") or not parsed.netloc:
-        raise HTTPException(status_code=400, detail="Invalid URL scheme or format")
+    try:
+        from utils.url import normalize_url
+        url_str = normalize_url(str(request.url))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     start_time = time.time()
 
