@@ -131,15 +131,17 @@ The URL phishing detection pipeline relies on extracting **47 distinct features*
 
 ---
 
-## 📧 5. Email Detection
+## 5. Email Detection
 
-The platform provides a comprehensive pipeline for scanning email content:
-- **Email Input** -> **TF-IDF Vectorization** -> **Linear SVM** -> **Email Prediction**.
-- **Linear SVM** serves as the production email model.
-- (A **BiLSTM** model was evaluated as an experimental deep-learning model).
-- Automatically performs **URL Extraction** on email bodies and passes them through the URL Analysis pipeline.
-- Performs **Forensic Analysis** on email properties.
-- Integrates **Explainability** and **Risk Aggregation** to generate a unified security report.
+The platform provides an email phishing detection pipeline:
+
+- **Email Input → Email Preprocessing → ML Email Detection → Email Prediction**
+- **Linear SVM** is the production email detection model.
+- **BiLSTM** was evaluated as an experimental deep-learning model.
+- URLs are automatically **extracted from the email body**.
+- Extracted URLs are **normalized** and passed to the existing **URL Analysis pipeline**.
+- The URL analysis performs **Feature Extraction, ML-based URL Detection, WHOIS, SSL, Redirect and VirusTotal analysis**.
+- Results from multiple URLs are combined using **Risk Aggregation** to generate an overall email risk assessment.
 
 ---
 
